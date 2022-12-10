@@ -1,0 +1,12 @@
+Manifest-Version: 1.0
+Automatic-Module-Name: it.unimi.xtext.kant
+Bundle-ManifestVersion: 2
+Bundle-Name: it.unimi.xtext.kant
+Bundle-Vendor: My Company
+Bundle-Version: 1.0.0.qualifier
+Bundle-SymbolicName: it.unimi.xtext.kant; singleton:=true
+Bundle-ActivationPolicy: lazy
+Require-Bundle: org.eclipse.xtext,
+ org.eclipse.xtext.xbase,
+ org.eclipse.equinox.common;bundle-version="3.5.0"
+Bundle-RequiredExecutionEnvironment: JavaSE-17

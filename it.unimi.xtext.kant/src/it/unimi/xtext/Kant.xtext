@@ -1,0 +1,9 @@
+grammar it.unimi.xtext.Kant with org.eclipse.xtext.common.Terminals
+
+generate kant "http://www.unimi.it/xtext/Kant"
+
+Model:
+	greetings+=Greeting*;
+	
+Greeting:
+	'Hello' name=ID '!';
