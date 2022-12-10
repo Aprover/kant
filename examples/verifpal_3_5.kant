@@ -1,0 +1,33 @@
+principal Server know {	
+	const s,
+	gs = PUB_GEN(s)
+}
+principal Client know {
+	const c,
+	gc = PUB_GEN(c),
+	fresh nonce
+}
+
+Client -> Server: nonce
+
+principal Server know {
+	proof = SIGN(nonce) with s
+}
+
+Server -> Client: { gs, proof }
+
+principal Client know {
+	valid = SIGNVERIF(nonce) with { k=gs, sign=proof },
+	fresh attestation,
+	signed = SIGN(attestation) with c
+}
+
+valid, nonce should be equal
+
+Client -> Server: { attestation, signed }
+
+principal Server know {
+	storage = SIGNVERIF(attestation) with { k=gc, sign=signed }
+}
+
+storage, attestation should be equal

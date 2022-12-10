@@ -1,0 +1,28 @@
+principal Alice know {
+	fresh a,
+	ga = PUB_GEN(a)
+}
+
+Alice -> Bob : ga
+
+principal Bob know {
+	fresh b,
+	gb = PUB_GEN(b),
+	fresh m1,
+	ss_a = DF(ga, b),
+	e1 = AEAD_ENC(m1) with { k=ss_a, auth=gb }
+}
+
+check here Bob should know m1
+check here Alice should not know m1
+
+Bob -> Alice: { gb, e1 }
+
+principal Alice know {
+	ss_b = DF(gb, a),
+	AEAD_DEC(e1) with { k=ss_b, auth=gb }
+}
+
+check here only Bob, Alice should know m1
+check Alice should authenticate Bob with e1
+check ss_a, ss_b should be equal

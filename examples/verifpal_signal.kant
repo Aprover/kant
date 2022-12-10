@@ -1,0 +1,78 @@
+shared knowledge fresh { c0, c1, c2, c3, c4 }
+
+principal Alice know {
+	const alongterm,
+	galongterm = PUB_GEN(alongterm)
+}
+
+principal Bob know {
+	const { blongterm, bs },
+	fresh bo,
+	gblongterm = PUB_GEN(blongterm),
+	gbs = PUB_GEN(bs),
+	gbo = PUB_GEN(bo),
+	gbssig = SIGN(gbs) with blongterm
+}
+
+Bob -> Alice: { gbssig, gbs, gbo }
+
+principal Alice know {
+	fresh ae1,
+	gae1 = PUB_GEN(ae1),
+	amaster = HASH(CONCAT(c0, DF(gbs, alongterm), DF(gblongterm, ae1), DF(gbs, ae1), DF(gbo, ae1))),
+	{ arkba1, ackba1 } = HKDF(amaster, c1, c2),
+	
+	fresh { m1, ae2 },
+	gae2 = PUB_GEN(ae2),
+	SIGNVERIF(gbssig) with { k=gblongterm, sign=gbs },
+	akshared1 = DF(gbs, ae2),
+	{ arkab1, ackab1 } = HKDF(akshared1, arkba1, c2),
+	{ arkenc1, akenc2 } = HKDF(MAC(ackab1, c3), c1, c4),
+	e1 = AEAD_ENC(m1) with { k=akenc1, auth=HASH(CONCAT(galonterm, gblongterm, gae2)) }
+}
+
+Alice -> Bob: { gae1, gae2, e1 }
+
+check here Bob should know m1
+
+principal Bob know {
+	bmaster = HASH(CONCAT(c0, DF(galongterm, bs), DF(gae1, blongterm), DF(gae1, bs), DF(gae1, bo))),
+	{ brkba1, bckba1 } = HKDF(bmaster, c1, c2),
+	
+	bkshared1 = DF(gae2, bs),
+	{ brkab1, bckab1 } = HKDF(bkshared1, brkba1, c2),
+	{ bkenc1, bkenc2 } = HKDF(MAC(bckab1, c3), c1, c4),
+	m1_d = AEAD_DEC(e1) with { k=bkenc1, auth=HASH(CONCAT(galonterm, gblongterm, gae2)) },
+	
+	fresh { m2, be_ },
+	gbe = PUB_GEN(be_),
+	bkshared2 = DF(gae2, be_),
+	{ brkba2, bckba2 } = HKDF(bkshared2, brkab1, c2),
+	{ bkenc3, bkenc4 } = HKDF(MAC(bckba2, c3), c1, c4),
+	e2 = AEAD_ENC(m2) with { k=bkenc3, auth=HASH(CONCAT(gblongterm, galongterm, gbe)) } 
+}
+
+Bob -> Alice: { gbe, e2 }
+
+check here Alice should know m2
+
+principal Alice know {
+	akshared = DF(gbe, ae2),
+	{ arkba2, ackba2 } = HKDF(akshared2, arkab1, c2),
+	{ akenc3, akenc4 } = HKDF(MAC(ackba2, c3), c1, c4),
+	m2_d = AEAD_DEC(e2) with { k=akenc3, auth=HASH(CONCAT(gblongterm, galongterm, gbe)) },
+	
+	fresh { m3, ae3 },
+	gae3 = PUB_GEN(ae3),
+	akshared3 = DF(gbe, ae3),
+	{ arkab3, ackab3 } = HKDF(akshared3, arkba2, c2),
+	{ akenc5, akenc6 } = HKDF(MAC(ackab3, c3), c1, c4),
+	e3 = AEAD_ENC(m3) with { k=akenc5, auth=HASH(CONCAT(gblongterm, galongterm, gae3)) } 
+}
+
+Alice -> Bob: { gae3, e3 }
+
+check here only Alice, Bob should know { m1, m2, m3 }
+check Bob should authenticate Alice with e1
+check Alice should authenticate Bob with e2
+check Bob should authenticate Alice with e3

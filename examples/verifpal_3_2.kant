@@ -1,0 +1,16 @@
+principal Alice, Bob know const a
+
+principal Alice know {	
+	fresh b,
+	ha = HASH(a),
+	hb = HASH(b)
+}
+
+Alice -> Bob: { ha, hb }
+
+principal Bob know {
+	bha = HASH(a)
+}
+
+ha, hb should be fresh
+bha, ha should be equal
