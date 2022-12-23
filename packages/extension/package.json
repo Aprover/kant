@@ -1,0 +1,74 @@
+{
+    "name": "kant-extension",
+    "version": "0.1.0",
+    "displayName": "kant",
+    "description": "vscode extension for the kant security protocols specification language",
+    "author": "Kristian Notari",
+    "publisher": "Kristian Notari",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/cb-unimi/kant.git"
+    },
+    "categories": [
+        "Programming Languages",
+        "Snippets",
+        "Linters",
+        "Formatters",
+        "Other"
+    ],
+    "keywords": [
+        "kant",
+        "security",
+        "protocol",
+        "specification"
+    ],
+    "engines": {
+        "vscode": "^1.56.0"
+    },
+    "activationEvents": [
+        "onLanguage:kant"
+    ],
+    "contributes": {
+        "languages": [
+            {
+                "id": "kant",
+                "aliases": [
+                    "Kant",
+                    "kant"
+                ],
+                "extensions": [
+                    ".kant"
+                ],
+                "configuration": "./language-configuration.json"
+            }
+        ],
+        "grammars": [
+            {
+                "language": "kant",
+                "scopeName": "source.kant",
+                "path": "./syntaxes/kant.tmLanguage.json"
+            }
+        ]
+    },
+    "main": "./out/extension.js",
+    "scripts": {
+        "lint": "eslint . --ext .ts --max-warnings=0 --ignore-path ../../.eslintignore",
+        "lint:fix": "pnpm run lint --fix",
+        "format": "prettier -w . --ignore-path ../../.prettierignore",
+        "format:fix": "pnpm run format && pnpm run lint:fix",
+        "build": "tsc && node esbuild.js",
+        "prepackage:extension": "pnpm run build",
+        "package:extension": "vsce package --no-dependencies",
+        "clean": "del-cli out *.vsix",
+        "clean:generated": "del-cli syntaxes"
+    },
+    "dependencies": {
+        "kant-core": "workspace:*",
+        "langium": "1.0.1",
+        "vscode-languageclient": "8.0.2",
+        "vscode-languageserver": "8.0.2"
+    },
+    "devDependencies": {
+        "@types/vscode": "1.56.0"
+    }
+}

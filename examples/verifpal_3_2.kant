@@ -12,5 +12,5 @@ principal Bob know {
 	bha = HASH(a)
 }
 
-ha, hb should be fresh
-bha, ha should be equal
+check ha, hb should be fresh
+check bha, ha should be equal

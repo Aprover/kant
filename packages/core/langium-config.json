@@ -1,0 +1,14 @@
+{
+    "projectName": "Kant",
+    "languages": [
+        {
+            "id": "kant",
+            "grammar": "kant.langium",
+            "fileExtensions": [".kant"],
+            "textMate": {
+                "out": "syntaxes/kant.tmLanguage.json"
+            }
+        }
+    ],
+    "out": "src/generated"
+}
