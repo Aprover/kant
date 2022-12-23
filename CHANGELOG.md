@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.1.0] - 2022-12-23
+
+Migrated the project to use [langium](https://langium.org) as the underlying language engineering tool.
+
 ## 2022-09-30
 
 Added Needham-Schroeder protocol example and removed scuttlebutt (for brevity, kept signal instead).
@@ -170,9 +174,9 @@ Used the verifpal manual to grasp real world concepts about protocol definition 
 
 1. base grammar rules definitions for protocol structure
 2. options for possible advanced definitions to include in the DSL itself:
-   1. *test* for testing protocol requirements in a certain *point (in time)* during defined communications are respected or not (eg. after communication `A -> B` with data `D`, does `B` know `D`? Does `C` know `D`?)
+   1. _test_ for testing protocol requirements in a certain _point (in time)_ during defined communications are respected or not (eg. after communication `A -> B` with data `D`, does `B` know `D`? Does `C` know `D`?)
    2. should the technological communication mean (direct/physical, broadcast, internet, other?) be defined within communication definitions? Should the technology world (local net, internet, other?) where communication happens be described?
-3. first *advanced* concept drafts:
+3. first _advanced_ concept drafts:
    1. knowledge and shared knowledge as blocks to describe several data and reference them in other principal knowledge or as data already known for all principals respectively
    2. testing of knowledge at a certain point should be both reference based (a principal knows the data `D`) and value based, so that if somehow a principal get to know the value `"string"` or `42` a warning should be triggered if that value is a value that principal should not know
-   3. *generators* for having data/knowledged expressed as function (generator) for just in time retrieving of value (potentially useful for timestamps and random values)
+   3. _generators_ for having data/knowledged expressed as function (generator) for just in time retrieving of value (potentially useful for timestamps and random values)

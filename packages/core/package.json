@@ -1,0 +1,27 @@
+{
+    "name": "kant-core",
+    "version": "0.1.0",
+    "files": [
+        "/index.d.ts",
+        "/index.js",
+        "/src/**/*.d.ts",
+        "/src/**/*.js",
+        "!/**/*.test.d.ts",
+        "!/**/*.test.js"
+    ],
+    "scripts": {
+        "pregenerate": "pnpm run -r clean:generated",
+        "generate": "langium generate",
+        "postgenerate": "copyfiles \"syntaxes/kant.tmLanguage.json\" \"../extension/\"",
+        "lint": "eslint . --ext .ts --max-warnings=0 --ignore-path ../../.eslintignore",
+        "lint:fix": "pnpm run lint --fix",
+        "format": "prettier -w . --ignore-path ../../.prettierignore",
+        "format:fix": "pnpm run format && pnpm run lint:fix",
+        "build": "tsc",
+        "clean": "del-cli out",
+        "clean:generated": "del-cli src/generated syntaxes"
+    },
+    "dependencies": {
+        "langium": "1.0.1"
+    }
+}

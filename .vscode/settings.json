@@ -1,0 +1,10 @@
+{
+    "files.exclude": {
+        "**/.jest": true,
+        "**/coverage": true,
+        "**/node_modules": true,
+        "**/out": true
+    },
+    "cSpell.words": ["Langium"],
+    "eslint.rules.customizations": [{ "rule": "*", "severity": "warn" }]
+}

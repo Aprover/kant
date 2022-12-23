@@ -22,7 +22,7 @@ principal Client know {
 	signed = SIGN(attestation) with c
 }
 
-valid, nonce should be equal
+check valid, nonce should be equal
 
 Client -> Server: { attestation, signed }
 
@@ -30,4 +30,4 @@ principal Server know {
 	storage = SIGNVERIF(attestation) with { k=gc, sign=signed }
 }
 
-storage, attestation should be equal
+check storage, attestation should be equal

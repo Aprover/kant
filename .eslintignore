@@ -1,12 +1,16 @@
+# bin cli
+packages/cli/cli
+
 # generated
 packages/core/src/generated
 packages/core/syntaxes
 packages/extension/syntaxes
 **/*.vsix
 
-# package directories
+# package specific
 **/node_modules
 **/out
+pnpm-lock.yaml
 
 # docs specific
 docs/out
