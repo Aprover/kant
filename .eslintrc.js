@@ -119,12 +119,6 @@ module.exports = {
             rules: {
                 "functional/no-throw-statement": "off"
             }
-        },
-        {
-            files: "packages/cli/src/**/*.ts",
-            rules: {
-                "no-console": "off"
-            }
         }
     ]
 }

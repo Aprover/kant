@@ -6,5 +6,11 @@
         "**/out": true
     },
     "cSpell.words": ["Langium"],
-    "eslint.rules.customizations": [{ "rule": "*", "severity": "warn" }]
+    "eslint.rules.customizations": [
+        {
+            "rule": "*",
+            "severity": "warn"
+        }
+    ],
+    "search.useIgnoreFiles": false
 }

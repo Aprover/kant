@@ -3,6 +3,7 @@ import * as path from "path"
 import * as vscode from "vscode"
 import type { LanguageClientOptions, ServerOptions } from "vscode-languageclient/node"
 import { LanguageClient, TransportKind } from "vscode-languageclient/node"
+import { KantBuiltinFileSystemProvider } from "./file-system-provider"
 
 // eslint-disable-next-line functional/no-let
 let client: LanguageClient | undefined
@@ -10,6 +11,7 @@ let client: LanguageClient | undefined
 // This function is called when the extension is activated.
 export function activate(context: vscode.ExtensionContext): void {
     client = startLanguageClient(context)
+    KantBuiltinFileSystemProvider.register(context)
 }
 
 // This function is called when the extension is deactivated.

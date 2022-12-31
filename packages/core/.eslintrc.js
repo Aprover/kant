@@ -11,6 +11,13 @@ module.exports = {
             rules: {
                 "import/no-extraneous-dependencies": ["error", { packageDir: __dirname }]
             }
+        },
+        {
+            files: "src/**/*.ts",
+            rules: {
+                "functional/no-class": "off",
+                "functional/no-this-expression": "off"
+            }
         }
     ]
 }

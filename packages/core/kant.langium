@@ -13,7 +13,7 @@ UniversalIntroduction:
 FunctionDef:
     'function'
 	(intro=UniversalIntroduction)?
-	name+=ID
+	name=ID
 	('(' params+=FunctionParam (',' params+=FunctionParam)* ')')?
 	( 'with' key=FunctionKey)?
 	(
@@ -54,7 +54,7 @@ KnowledgeEqualityDef:
 ;
 
 FunctionInversionDef:
-    inverter=ID 'invert' function=ID
+    inverter=[FunctionDef:ID] 'invert' function=[FunctionDef:ID]
 ;
 
 KnowledgeBase:
@@ -67,8 +67,21 @@ Knowledge:
     KnowledgeDef | KnowledgeValue;
 
 KnowledgeDef:
-    (name+=ID | KnowledgeDefDestructuring) '=' value=KnowledgeValue
-	| ('const' | 'fresh') (name+=ID | '{' name+=ID (',' name+=ID)* '}');
+    KnowledgeDefBuiltin
+    | KnowledgeDefCustom
+;
+
+KnowledgeDefBuiltin:
+    type=('const' | 'fresh') (name+=ID | '{' name+=ID (',' name+=ID)* '}')
+;
+
+KnowledgeDefCustom:
+    left=(KnowledgeDefCustomName | KnowledgeDefDestructuring) '=' value=KnowledgeValue
+;
+
+KnowledgeDefCustomName:
+    name=ID
+;
 
 KnowledgeDefDestructuring:
     KnowledgeDefSetDestructuring
@@ -76,21 +89,30 @@ KnowledgeDefDestructuring:
 ;
 
 KnowledgeDefSetDestructuring:
-    '{' (assignments+=KnowledgeDefSetDesctructuringAssignment (',' assignments+=KnowledgeDefSetDesctructuringAssignment)*)? '}'
+    '{' (assignments+=KnowledgeDefSetDestructuringAssignment (',' assignments+=KnowledgeDefSetDestructuringAssignment)*)? '}'
 ;
 
-KnowledgeDefSetDesctructuringAssignment:
+KnowledgeDefSetDestructuringAssignment:
     name=ID ('=' from=ID)?
 ;
 
 KnowledgeDefListDestructuring:
-    '[' (assignments+=KnowledgeDefListDesctructuringAssignment (',' assignments+=KnowledgeDefListDesctructuringAssignment)*)? ']'
+    '[' elements+=KnowledgeDefListDestructuringElement (',' elements+=KnowledgeDefListDestructuringElement*)? ']'
 ;
 
-KnowledgeDefListDesctructuringAssignment:
-    '...'
-	|  '_'
-	| name=ID
+KnowledgeDefListDestructuringElement:
+    KnowledgeDefListDestructuringSpreading
+    | KnowledgeDefListDestructuringSkip
+    | KnowledgeDefListDestructuringAssignment;
+
+KnowledgeDefListDestructuringSpreading:
+    {infer KnowledgeDefListDestructuringSpreading} '...';
+
+KnowledgeDefListDestructuringSkip:
+    {infer KnowledgeDefListDestructuringSkip} '_';
+
+KnowledgeDefListDestructuringAssignment:
+    name=ID
 ;
 
 KnowledgeValue:
@@ -117,12 +139,16 @@ KnowledgeGenerator:
     'gen' type=STRING;
 
 KnowledgeFromFunction:
-    name=ID '(' args=KnowledgeFromFunctionArg? ')'
+    name=ID '(' args=KnowledgeFromFunctionArgs? ')'
 	('with' key=KnowledgeValue)?;
 
-KnowledgeFromFunctionArg:
-    (args+=KnowledgeValue (',' args+=KnowledgeValue)* )
+KnowledgeFromFunctionArgs:
+    KnowledgeFromFunctionArgsElements
 	| KnowledgeSpreading
+;
+
+KnowledgeFromFunctionArgsElements:
+    (args+=KnowledgeValue (',' args+=KnowledgeValue)* )
 ;
 
 Communication:
@@ -164,7 +190,7 @@ AuthenticationCheck:
     principal=ID 'should' 'authenticate' target=ID 'with' knowledge=KnowledgeValue;
 
 
-terminal ID returns string: (/[a-z]/|/[A-Z]/) (/[a-z]/|/[A-Z]/|'_'|/[0-9]/)*;
+terminal ID returns string: /[a-zA-Z]([a-zA-Z0-9_])*/;
 terminal STRING returns string: '"' ( '\\' . /* 'b'|'t'|'n'|'f'|'r'|'u'|'"'|"'"|'\\' */ | !('\\'|'"') )* '"';
 hidden terminal WS:             /\s+/;
 hidden terminal ML_COMMENT:     /\/\*[\s\S]*?\*\//;

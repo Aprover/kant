@@ -1,4 +1,5 @@
 import type {
+    DeepPartial,
     DefaultSharedModuleContext,
     LangiumServices,
     LangiumSharedServices,
@@ -7,7 +8,10 @@ import type {
 } from "langium"
 import { createDefaultModule, createDefaultSharedModule, inject } from "langium"
 import { KantGeneratedModule, KantGeneratedSharedModule } from "./generated/module"
-import { KantValidator, registerValidationChecks } from "./kant-validator"
+import { KantScopeComputation } from "./scope-computation"
+import { KantScopeProvider } from "./scope-provider"
+import { KantValidator, registerValidationChecks } from "./validator"
+import { KantWorkspaceManager } from "./workspace-manager"
 
 /**
  * Declaration of custom services - add your own service classes here.
@@ -29,9 +33,31 @@ export type KantServices = LangiumServices & KantAddedServices
  * declared custom services. The Langium defaults can be partially specified to override only
  * selected services, while the custom services must be fully specified.
  */
+
 export const KantModule: Module<KantServices, PartialLangiumServices & KantAddedServices> = {
     validation: {
         KantValidator: () => KantValidator
+    },
+    references: {
+        ScopeComputation: services => new KantScopeComputation(services),
+        ScopeProvider: services => new KantScopeProvider(services)
+    }
+}
+
+/**
+ * Declaration of custom shared services - add your own service classes here.
+ */
+export type KantAddedSharedServices = Record<string, never>
+
+/**
+ * Union of Langium default shared services and your custom shared services - use this as constructor parameter
+ * of custom service classes.
+ */
+export type KantSharedServices = LangiumSharedServices & KantAddedSharedServices
+
+export const KantSharedModule: Module<KantSharedServices, DeepPartial<LangiumSharedServices>> = {
+    workspace: {
+        WorkspaceManager: services => new KantWorkspaceManager(services)
     }
 }
 
@@ -54,7 +80,7 @@ export function createKantServices(context: DefaultSharedModuleContext): {
     shared: LangiumSharedServices
     Kant: KantServices
 } {
-    const shared = inject(createDefaultSharedModule(context), KantGeneratedSharedModule)
+    const shared = inject(createDefaultSharedModule(context), KantGeneratedSharedModule, KantSharedModule)
     const Kant = inject(createDefaultModule({ shared }), KantGeneratedModule, KantModule)
     shared.ServiceRegistry.register(Kant)
     registerValidationChecks(Kant)

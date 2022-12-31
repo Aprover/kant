@@ -22,6 +22,8 @@
         "clean:generated": "del-cli src/generated syntaxes"
     },
     "dependencies": {
-        "langium": "1.0.1"
+        "langium": "1.0.1",
+        "vscode-uri": "3.0.7",
+        "vscode-languageserver": "8.0.2"
     }
 }
