@@ -1,5 +1,5 @@
-import { isCommentNode, MaybePromise, ValidationAcceptor, ValidationChecks } from "langium"
-import { KantAstType, Protocol, AuthenticationCheck, Communication, isPrincipal, isCommunication } from "./generated/ast"
+import { MaybePromise, ValidationAcceptor, ValidationChecks } from "langium"
+import { KantAstType, Protocol, AuthenticationCheck, Communication, isPrincipal, isCommunication, isCheck, isAuthenticationCheck } from "./generated/ast"
 import { isFunctionDef } from "./generated/ast"
 import type { KantServices } from "./module"
 
@@ -83,6 +83,30 @@ export const KantValidator = {
                     accept(`error`, `Unknown principal "${principal}"`, {node: communication} )
                 }
             })
+        })
+    },
+    /**
+     * 
+     * @param protocol 
+     * @param accept 
+     */
+    checkAuthenticationCheckPrincipalIsKnown: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
+        const principals = new Set<string>() 
+        protocol.elements.filter(isPrincipal).forEach(principal => {
+            principal.name.forEach(name => {
+                principals.add(name)
+            })
+        })
+
+        const checks = protocol.elements.filter(isCheck)
+        const authenticationChecks = checks.filter(isAuthenticationCheck)
+        authenticationChecks.forEach(authCheck => {
+            if (!principals.has(authCheck.principal)) {
+                accept(`error`, `Unknown principal "${authCheck.principal}"`, {node: authCheck})
+            }
+            if (!principals.has(authCheck.target)) {
+                accept(`error`, `Unknown principal "${authCheck.target}"`, {node: authCheck})
+            }
         })
     }
 }
