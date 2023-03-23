@@ -12,7 +12,8 @@ export function registerValidationChecks(services: KantServices): void {
     const checks: ValidationChecks<KantAstType> = {
         Protocol: [
             KantValidator.checkUniqueFunctionName, 
-            KantValidator.checkCommunicationPrincipalIsKnown
+            KantValidator.checkCommunicationPrincipalIsKnown,
+            KantValidator.checkAuthenticationCheckPrincipalIsKnown
         ],
         AuthenticationCheck: [KantValidator.checkAuthenticationPrincipalIsNotDuplicate],
         Communication: [KantValidator.checkCommunicationPrincipalIsNotDuplicate]
