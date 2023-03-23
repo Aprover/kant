@@ -1,6 +1,6 @@
 import { MaybePromise, ValidationAcceptor, ValidationChecks } from "langium"
 import { KantAstType, Protocol, AuthenticationCheck, Communication, isPrincipal, isCommunication, isCheck, isAuthenticationCheck } from "./generated/ast"
-import { isFunctionDef } from "./generated/ast"
+import { isFunctionDef, isKnowledgeCheck } from "./generated/ast"
 import type { KantServices } from "./module"
 
 /**
@@ -13,7 +13,8 @@ export function registerValidationChecks(services: KantServices): void {
         Protocol: [
             KantValidator.checkUniqueFunctionName, 
             KantValidator.checkCommunicationPrincipalIsKnown,
-            KantValidator.checkAuthenticationCheckPrincipalIsKnown
+            KantValidator.checkAuthenticationCheckPrincipalIsKnown,
+            KantValidator.checkKnownledgeCheckPrincipalIsKnown
         ],
         AuthenticationCheck: [KantValidator.checkAuthenticationPrincipalIsNotDuplicate],
         Communication: [KantValidator.checkCommunicationPrincipalIsNotDuplicate]
@@ -108,6 +109,29 @@ export const KantValidator = {
             if (!principals.has(authCheck.target)) {
                 accept(`error`, `Unknown principal "${authCheck.target}"`, {node: authCheck})
             }
+        })
+    },
+    /**
+     * 
+     * @param protocol 
+     * @param accept 
+     */
+    checkKnownledgeCheckPrincipalIsKnown: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
+        const principals = new Set<string>() 
+        protocol.elements.filter(isPrincipal).forEach(principal => {
+            principal.name.forEach(name => {
+                principals.add(name)
+            })
+        })
+
+        const checks = protocol.elements.filter(isCheck)
+        const knowledgeChecks = checks.filter(isKnowledgeCheck)
+        knowledgeChecks.forEach(knowledgeCheck => {
+            knowledgeCheck.target.forEach(principal => {
+                if (!principals.has(principal)) {
+                    accept(`error`, `Unknown principal "${principal}"`, {node: knowledgeCheck})
+                }
+            })
         })
     }
 }
