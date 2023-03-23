@@ -1,5 +1,5 @@
-import type { MaybePromise, ValidationAcceptor, ValidationChecks } from "langium"
-import type { KantAstType, Protocol, AuthenticationCheck, Communication } from "./generated/ast"
+import { isCommentNode, MaybePromise, ValidationAcceptor, ValidationChecks } from "langium"
+import { KantAstType, Protocol, AuthenticationCheck, Communication, isPrincipal, isCommunication } from "./generated/ast"
 import { isFunctionDef } from "./generated/ast"
 import type { KantServices } from "./module"
 
@@ -10,7 +10,10 @@ export function registerValidationChecks(services: KantServices): void {
     const registry = services.validation.ValidationRegistry
     const validator = services.validation.KantValidator
     const checks: ValidationChecks<KantAstType> = {
-        Protocol: [KantValidator.checkUniqueFunctionName],
+        Protocol: [
+            KantValidator.checkUniqueFunctionName, 
+            KantValidator.checkCommunicationPrincipalIsKnown
+        ],
         AuthenticationCheck: [KantValidator.checkAuthenticationPrincipalIsNotDuplicate],
         Communication: [KantValidator.checkCommunicationPrincipalIsNotDuplicate]
     }
@@ -57,6 +60,29 @@ export const KantValidator = {
             if (communication.to.includes(principal)) {
                 accept(`warning`, `Communication is redundant: "${principal}" already knows this knowledge`, {node: communication})
             }
+        })
+    },
+    /**
+     * 
+     * @param protocol 
+     * @param accept 
+     */
+    checkCommunicationPrincipalIsKnown: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
+        const principals = new Set<string>() 
+        protocol.elements.filter(isPrincipal).forEach(principal => {
+            principal.name.forEach(name => {
+                principals.add(name)
+            })
+        })
+
+        const communications = protocol.elements.filter(isCommunication)
+        communications.forEach(communication => {
+            const partners = communication.from.concat(communication.to)
+            partners.forEach(principal => {
+                if (!principals.has(principal)) {
+                    accept(`error`, `Unknown principal "${principal}"`, {node: communication} )
+                }
+            })
         })
     }
 }
