@@ -152,7 +152,7 @@ KnowledgeFromFunctionArgsElements:
 ;
 
 Communication:
-    from+=ID (',' from+=ID)* '->' to+=ID (',' to+=ID)* ':' (id=STRING)? knowledge=Knowledge;
+    ('(' messageId=ID ')')? from+=ID (',' from+=ID)* '->' to+=ID (',' to+=ID)* ':' (id=STRING)? knowledge=Knowledge;
 
 ScenarioBranching:
     ScenarioOptional
