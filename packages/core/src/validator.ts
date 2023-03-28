@@ -1,5 +1,5 @@
 import { MaybePromise, ValidationAcceptor, ValidationChecks } from "langium"
-import { KantAstType, Protocol, AuthenticationCheck, Communication, isPrincipal, isCommunication, isCheck, isAuthenticationCheck, isScenarioBranching, ScenarioBranching } from "./generated/ast"
+import { KantAstType, Protocol, AuthenticationCheck, Communication, isPrincipal, isCommunication, isCheck, isAuthenticationCheck, isScenarioBranching, ScenarioBranching, isKnowledgeBase, isKnowledgeDef, isKnowledgeDefCustom, isKnowledgeDefCustomName, isKnowledgeRef, isKnowledgeList, isKnowledgeSet, isKnowledge, isKnowledgeValue } from "./generated/ast"
 import { isFunctionDef, isKnowledgeCheck } from "./generated/ast"
 import type { KantServices } from "./module"
 
@@ -15,7 +15,8 @@ export function registerValidationChecks(services: KantServices): void {
             KantValidator.checkCommunicationPrincipalIsKnown,
             KantValidator.checkAuthenticationCheckPrincipalIsKnown,
             KantValidator.checkKnownledgeCheckPrincipalIsKnown,
-            KantValidator.checkScenarioPrincipalIsKnown
+            KantValidator.checkScenarioPrincipalIsKnown,
+            KantValidator.checkNonSetNestedKnowledgeAccess
         ],
         AuthenticationCheck: [
             KantValidator.checkAuthenticationPrincipalIsNotDuplicate
@@ -154,6 +155,56 @@ export const KantValidator = {
 
         protocol.elements.filter(isScenarioBranching).forEach(scenario => {
             checkScenarioPrincipal(scenario, principals, accept)
+        })
+    },
+    checkNonSetNestedKnowledgeAccess: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
+        const setKnowledge = new Set<string>()
+
+        const knowledgeBases = protocol.elements.filter(isKnowledgeBase)
+        knowledgeBases.forEach(knowledgeBase => {
+            if (isKnowledgeDef(knowledgeBase.knowledge)) {
+                if (isKnowledgeDefCustom(knowledgeBase.knowledge)) {
+                    if (isKnowledgeDefCustomName(knowledgeBase.knowledge.left)) {
+                        setKnowledge.add(knowledgeBase.knowledge.left.name)
+                    }
+                }
+            }
+        })
+
+        knowledgeBases.forEach(knowledgeBase => {
+            if (isKnowledgeDef(knowledgeBase.knowledge)) {
+                if (isKnowledgeDefCustom(knowledgeBase.knowledge)) {
+                    if (isKnowledgeRef(knowledgeBase.knowledge.value)) {
+                        if (knowledgeBase.knowledge.value.access.length !== 0) {
+                            if (!setKnowledge.has(knowledgeBase.knowledge.value.ref)) {
+                                accept(`error`, `Cannot perform nested access on non set knowledge, ${knowledgeBase.knowledge.value.ref} is not a set knowledge`, { node: knowledgeBase.knowledge })
+                            }
+                        }
+                    }
+                    if (isKnowledgeList(knowledgeBase.knowledge.value)) {
+                        const values = knowledgeBase.knowledge.value.values
+                        values.forEach(v => {
+                            if (isKnowledgeRef(v) && v.access.length !== 0) {
+                                if (!setKnowledge.has(v.ref)) {
+                                    accept(`error`, `Cannot perform nested access on non set knowledge, ${v.ref} is not a set knowledge`, { node: v })
+                                }
+                            }
+                        })
+                    }
+                    if (isKnowledgeSet(knowledgeBase.knowledge.value)) {
+                        const content = knowledgeBase.knowledge.value.content
+                        content.forEach(c => {
+                            if (isKnowledge(c) && isKnowledgeValue(c) && isKnowledgeRef(c)) {
+                                if (c.access.length !== 0) {
+                                    if (!setKnowledge.has(c.ref)) {
+                                        accept(`error`, `Cannot perform nested access on non set knowledge, ${c.ref} is not a set knowledge`, { node: c })
+                                    }
+                                }
+                            }
+                        })
+                    }
+                }
+            }
         })
     }
 }
