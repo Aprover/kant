@@ -1,5 +1,5 @@
 import { MaybePromise, ValidationAcceptor, ValidationChecks } from "langium"
-import { KantAstType, Protocol, AuthenticationCheck, Communication, isPrincipal, isCommunication, isCheck, isAuthenticationCheck } from "./generated/ast"
+import { KantAstType, Protocol, AuthenticationCheck, Communication, isPrincipal, isCommunication, isCheck, isAuthenticationCheck, isScenarioBranching, ScenarioBranching } from "./generated/ast"
 import { isFunctionDef, isKnowledgeCheck } from "./generated/ast"
 import type { KantServices } from "./module"
 
@@ -14,10 +14,15 @@ export function registerValidationChecks(services: KantServices): void {
             KantValidator.checkUniqueFunctionName, 
             KantValidator.checkCommunicationPrincipalIsKnown,
             KantValidator.checkAuthenticationCheckPrincipalIsKnown,
-            KantValidator.checkKnownledgeCheckPrincipalIsKnown
+            KantValidator.checkKnownledgeCheckPrincipalIsKnown,
+            KantValidator.checkScenarioPrincipalIsKnown
         ],
-        AuthenticationCheck: [KantValidator.checkAuthenticationPrincipalIsNotDuplicate],
-        Communication: [KantValidator.checkCommunicationPrincipalIsNotDuplicate]
+        AuthenticationCheck: [
+            KantValidator.checkAuthenticationPrincipalIsNotDuplicate
+        ],
+        Communication: [
+            KantValidator.checkCommunicationPrincipalIsNotDuplicate
+        ]
     }
     registry.register(checks, validator)
 }
@@ -133,6 +138,82 @@ export const KantValidator = {
                 }
             })
         })
+    },
+    /**
+     * 
+     * @param protocol 
+     * @param accept 
+     */
+    checkScenarioPrincipalIsKnown: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
+        const principals = new Set<string>()
+        protocol.elements.filter(isPrincipal).forEach(principal => {
+            principal.name.forEach(name => {
+                principals.add(name)
+            })
+        })
+
+        protocol.elements.filter(isScenarioBranching).forEach(scenario => {
+            checkScenarioPrincipal(scenario, principals, accept)
+        })
     }
 }
+
+function checkScenarioPrincipal(scenarioBranching: ScenarioBranching, principals: Set<string>, accept: ValidationAcceptor): void {
+    // add principals defined in this scenario
+    scenarioBranching.scenario.forEach(s => {
+        s.elements.filter(isPrincipal).forEach(p => {
+            p.name.forEach(n => {
+                principals.add(n)
+            })
+        })
+    })
+
+    // check communications in this scenario
+    scenarioBranching.scenario.forEach(s => {
+        s.elements.filter(isCommunication).forEach(c => {
+            const partners = (c.from).concat(c.to)
+            partners.forEach(p => {
+                if (!principals.has(p)) {
+                    accept(`error`, `Unknown principal "${p}"`, { node: c })
+                }
+            })
+        })
+    })
+
+    // check authentication checks in this scenario
+    scenarioBranching.scenario.forEach(s => {
+        s.elements.filter(isCheck).filter(isAuthenticationCheck).forEach(ac => {
+            if (!principals.has(ac.principal)) {
+                accept(`error`, `Unknown principal "${ac.principal}"`, {node: ac})
+            }
+            if (!principals.has(ac.target)) {
+                accept(`error`, `Unknown principal "${ac.target}"`, {node: ac})
+            }
+        })
+    })
+
+    // check knowledge checks in this scenario
+    scenarioBranching.scenario.forEach(s => {
+        s.elements.filter(isCheck).filter(isKnowledgeCheck).forEach(kc => {
+            kc.target.forEach(p => {
+                if (!principals.has(p)) {
+                    accept(`error`, `Unknown principal "${p}"`, {node: kc})
+                }
+            })
+        })
+    })
+
+    // if this scenario has more scenario nested in it, call recursively
+    scenarioBranching.scenario.forEach(s => {
+        const nestedScenarios = s.elements.filter(isScenarioBranching)
+        if (nestedScenarios.length === 0) {
+            return
+        } else {
+            nestedScenarios.forEach(ns => {
+                checkScenarioPrincipal(ns, principals, accept)
+            })
+        }
+    })
+}
+
 export type KantValidator = typeof KantValidator
