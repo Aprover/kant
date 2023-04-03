@@ -14,7 +14,8 @@ export function registerValidationChecks(services: KantServices): void {
             KantValidator.checkUniqueFunctionName, 
             KantValidator.checkPrincipalIsKnown,
             KantValidator.checkNonSetNestedKnowledgeAccess,
-            KantValidator.checkKnowledgeUsage
+            KantValidator.checkKnowledgeUsage,
+            KantValidator.checkUnknownFunctionUsage
         ],
         AuthenticationCheck: [
             KantValidator.checkAuthenticationPrincipalIsNotDuplicate
@@ -345,6 +346,37 @@ export const KantValidator = {
                         }
                     }
                 }
+            }
+        })
+    },
+    /**
+     * 
+     * @param protocol 
+     * @param accept 
+     */
+    checkUnknownFunctionUsage: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
+        const functionNames = new Set<string>()
+        protocol.elements.filter(isFunctionDef).forEach(functionDef => {
+            functionNames.add(functionDef.name)
+        })
+
+        const knowledgeBases = protocol.elements.filter(isKnowledgeBase)
+        knowledgeBases.forEach(kb => {
+            if (isKnowledgeDef(kb.knowledge)) {
+                if (isKnowledgeDefCustom(kb.knowledge)) {
+                    if (isKnowledgeFromFunction(kb.knowledge.value)) {
+                        const name = kb.knowledge.value.name
+                        if (!functionNames.has(name)) {
+                            accept(`error`, `Unknown function usage`, { node: kb.knowledge.value })
+                        }
+                    }
+                }
+            }
+            if (isKnowledgeFromFunction(kb.knowledge)) {
+                const name = kb.knowledge.name
+                        if (!functionNames.has(name)) {
+                            accept(`error`, `Unknown function usage`, { node: kb.knowledge })
+                        }
             }
         })
     }
