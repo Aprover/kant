@@ -12,7 +12,7 @@ export function registerValidationChecks(services: KantServices): void {
     const checks: ValidationChecks<KantAstType> = {
         Protocol: [
             KantValidator.checkUniqueFunctionName, 
-            
+            KantValidator.checkPrincipalIsKnown,
             KantValidator.checkNonSetNestedKnowledgeAccess
         ],
         AuthenticationCheck: [
@@ -125,20 +125,20 @@ export const KantValidator = {
     checkNonSetNestedKnowledgeAccess: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
         const setKnowledge = new Set<string>()
 
+        // fill set with the names of knowledge sets
         const knowledgeBases = protocol.elements.filter(isKnowledgeBase)
+
         knowledgeBases.forEach(knowledgeBase => {
-            if (isKnowledgeDef(knowledgeBase.knowledge)) {
-                if (isKnowledgeDefCustom(knowledgeBase.knowledge)) {
-                    if (isKnowledgeDefCustomName(knowledgeBase.knowledge.left)) {
-                        setKnowledge.add(knowledgeBase.knowledge.left.name)
-                    }
+            if (isKnowledgeDefCustom(knowledgeBase.knowledge)) {
+                if (isKnowledgeDefCustomName(knowledgeBase.knowledge.left)) {
+                    setKnowledge.add(knowledgeBase.knowledge.left.name)
                 }
             }
         })
 
         knowledgeBases.forEach(knowledgeBase => {
-            if (isKnowledgeDef(knowledgeBase.knowledge)) {
                 if (isKnowledgeDefCustom(knowledgeBase.knowledge)) {
+                    // knowledge otherKnowledge = a.other -> IMPOSSIBLE if a is not a set
                     if (isKnowledgeRef(knowledgeBase.knowledge.value)) {
                         if (knowledgeBase.knowledge.value.access.length !== 0) {
                             if (!setKnowledge.has(knowledgeBase.knowledge.value.ref)) {
@@ -146,6 +146,7 @@ export const KantValidator = {
                             }
                         }
                     }
+                    // knowledge otherKnowledge = [a.other, b] -> IMPOSSIBle if a is not a set
                     if (isKnowledgeList(knowledgeBase.knowledge.value)) {
                         const values = knowledgeBase.knowledge.value.values
                         values.forEach(v => {
@@ -156,22 +157,97 @@ export const KantValidator = {
                             }
                         })
                     }
+                    // knowledge otherKnowledge = { fresh k, a.other } -> IMPOSSIBLE if a is not a set
                     if (isKnowledgeSet(knowledgeBase.knowledge.value)) {
                         const content = knowledgeBase.knowledge.value.content
                         content.forEach(c => {
-                            if (isKnowledge(c) && isKnowledgeValue(c) && isKnowledgeRef(c)) {
-                                if (c.access.length !== 0) {
+                            if (isKnowledge(c) && isKnowledgeValue(c) && isKnowledgeRef(c) && c.access.length !== 0) {
+                                
                                     if (!setKnowledge.has(c.ref)) {
                                         accept(`error`, `Cannot perform nested access on non set knowledge, ${c.ref} is not a set knowledge`, { node: c })
                                     }
-                                }
+                                
                             }
                         })
                     }
                 }
+            
+        })
+
+        const scenarios = protocol.elements.filter(isScenarioBranching)
+        if (scenarios.length !== 0) {
+            scenarios.forEach(s => {
+                checkNonSetKnowledgeAccessingScenario(s, setKnowledge, accept)
+            })
+        }
+    }
+}
+
+function checkNonSetKnowledgeAccessingScenario(scenario: ScenarioBranching, setKnowledge: Set<string>, accept: ValidationAcceptor): void {
+    scenario.scenario.forEach(s => {
+        s.elements.filter(isKnowledgeBase).forEach(knowledgeBase => {
+            if (isKnowledgeDefCustom(knowledgeBase.knowledge)) {
+                if (isKnowledgeDefCustomName(knowledgeBase.knowledge.left)) {
+                    setKnowledge.add(knowledgeBase.knowledge.left.name)
+                }
             }
         })
-    }
+    })
+
+    scenario.scenario.forEach(s => {
+        const knowledgeBases = s.elements.filter(isKnowledgeBase)
+        knowledgeBases.forEach(knowledgeBase => {
+                
+            if (isKnowledgeDefCustom(knowledgeBase.knowledge)) {
+                // knowledge otherKnowledge = a.other -> IMPOSSIBLE if a is not a set
+                if (isKnowledgeRef(knowledgeBase.knowledge.value)) {
+                    if (knowledgeBase.knowledge.value.access.length !== 0) {
+                        if (!setKnowledge.has(knowledgeBase.knowledge.value.ref)) {
+                            accept(`error`, `Cannot perform nested access on non set knowledge, ${knowledgeBase.knowledge.value.ref} is not a set knowledge`, { node: knowledgeBase.knowledge })
+                        }
+                    }
+                }
+                // knowledge otherKnowledge = [a.other, b] -> IMPOSSIBle if a is not a set
+                if (isKnowledgeList(knowledgeBase.knowledge.value)) {
+                    const values = knowledgeBase.knowledge.value.values
+                    values.forEach(v => {
+                        if (isKnowledgeRef(v) && v.access.length !== 0) {
+                            if (!setKnowledge.has(v.ref)) {
+                                accept(`error`, `Cannot perform nested access on non set knowledge, ${v.ref} is not a set knowledge`, { node: v })
+                            }
+                        }
+                    })
+                }
+                // knowledge otherKnowledge = { fresh k, a.other } -> IMPOSSIBLE if a is not a set
+                if (isKnowledgeSet(knowledgeBase.knowledge.value)) {
+                    const content = knowledgeBase.knowledge.value.content
+                    content.forEach(c => {
+                        if (isKnowledge(c) && isKnowledgeValue(c) && isKnowledgeRef(c) && c.access.length !== 0) {
+                            
+                                if (!setKnowledge.has(c.ref)) {
+                                    accept(`error`, `Cannot perform nested access on non set knowledge, ${c.ref} is not a set knowledge`, { node: c })
+                                }
+                            
+                        }
+                    })
+                }
+            }
+        })
+
+
+    })
+
+    scenario.scenario.forEach(sc => {
+        const nestedSc = sc.elements.filter(isScenarioBranching)
+        if (nestedSc.length === 0) {
+            return
+        } else {
+            nestedSc.forEach(ns => {
+                checkNonSetKnowledgeAccessingScenario(ns, setKnowledge, accept)
+            })
+        }
+    })
+
 }
 
 function checkScenarioPrincipal(scenario: ScenarioBranching, principals: Set<string>, accept: ValidationAcceptor): void {
