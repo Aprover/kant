@@ -12,10 +12,7 @@ export function registerValidationChecks(services: KantServices): void {
     const checks: ValidationChecks<KantAstType> = {
         Protocol: [
             KantValidator.checkUniqueFunctionName, 
-            KantValidator.checkCommunicationPrincipalIsKnown,
-            KantValidator.checkAuthenticationCheckPrincipalIsKnown,
-            KantValidator.checkKnownledgeCheckPrincipalIsKnown,
-            KantValidator.checkScenarioPrincipalIsKnown,
+            
             KantValidator.checkNonSetNestedKnowledgeAccess
         ],
         AuthenticationCheck: [
@@ -75,88 +72,56 @@ export const KantValidator = {
      * @param protocol 
      * @param accept 
      */
-    checkCommunicationPrincipalIsKnown: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
-        const principals = new Set<string>() 
+    checkPrincipalIsKnown: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
+        const knownPrincipals = new Set<string>()
         protocol.elements.filter(isPrincipal).forEach(principal => {
             principal.name.forEach(name => {
-                principals.add(name)
+                knownPrincipals.add(name)
             })
         })
 
+        // check principals used in communications are known
         const communications = protocol.elements.filter(isCommunication)
         communications.forEach(communication => {
-            const partners = communication.from.concat(communication.to)
+            const senders = communication.from
+            const receivers = communication.to
+            const partners = senders.concat(receivers)
             partners.forEach(principal => {
-                if (!principals.has(principal)) {
-                    accept(`error`, `Unknown principal "${principal}"`, {node: communication} )
+                if (!knownPrincipals.has(principal)) {
+                    accept(`error`, `Unknown principal "${principal}"`, {node: communication})
                 }
             })
         })
-    },
-    /**
-     * 
-     * @param protocol 
-     * @param accept 
-     */
-    checkAuthenticationCheckPrincipalIsKnown: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
-        const principals = new Set<string>() 
-        protocol.elements.filter(isPrincipal).forEach(principal => {
-            principal.name.forEach(name => {
-                principals.add(name)
-            })
-        })
 
+        // check principals used in authentication checks are known 
         const checks = protocol.elements.filter(isCheck)
         const authenticationChecks = checks.filter(isAuthenticationCheck)
         authenticationChecks.forEach(authCheck => {
-            if (!principals.has(authCheck.principal)) {
+            if (!knownPrincipals.has(authCheck.principal)) {
                 accept(`error`, `Unknown principal "${authCheck.principal}"`, {node: authCheck})
             }
-            if (!principals.has(authCheck.target)) {
+            if (!knownPrincipals.has(authCheck.target)) {
                 accept(`error`, `Unknown principal "${authCheck.target}"`, {node: authCheck})
             }
         })
-    },
-    /**
-     * 
-     * @param protocol 
-     * @param accept 
-     */
-    checkKnownledgeCheckPrincipalIsKnown: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
-        const principals = new Set<string>() 
-        protocol.elements.filter(isPrincipal).forEach(principal => {
-            principal.name.forEach(name => {
-                principals.add(name)
-            })
-        })
 
-        const checks = protocol.elements.filter(isCheck)
+        // check principals used in knowledge checks are known
         const knowledgeChecks = checks.filter(isKnowledgeCheck)
-        knowledgeChecks.forEach(knowledgeCheck => {
-            knowledgeCheck.target.forEach(principal => {
-                if (!principals.has(principal)) {
-                    accept(`error`, `Unknown principal "${principal}"`, {node: knowledgeCheck})
+        knowledgeChecks.forEach(knowCheck => {
+            knowCheck.target.forEach(principal => {
+                if (!knownPrincipals.has(principal)) {
+                    accept(`error`, `Unknown principal "${principal}"`, {node: knowCheck})
                 }
             })
         })
-    },
-    /**
-     * 
-     * @param protocol 
-     * @param accept 
-     */
-    checkScenarioPrincipalIsKnown: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
-        const principals = new Set<string>()
-        protocol.elements.filter(isPrincipal).forEach(principal => {
-            principal.name.forEach(name => {
-                principals.add(name)
-            })
-        })
 
-        protocol.elements.filter(isScenarioBranching).forEach(scenario => {
-            checkScenarioPrincipal(scenario, principals, accept)
+        // call check first level scenarios, then call recursively if needed
+        const scenarios = protocol.elements.filter(isScenarioBranching)
+        scenarios.forEach(sc => {
+            checkScenarioPrincipal(sc, knownPrincipals, accept)
         })
-    },
+    }
+    ,
     checkNonSetNestedKnowledgeAccess: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
         const setKnowledge = new Set<string>()
 
@@ -209,58 +174,59 @@ export const KantValidator = {
     }
 }
 
-function checkScenarioPrincipal(scenarioBranching: ScenarioBranching, principals: Set<string>, accept: ValidationAcceptor): void {
-    // add principals defined in this scenario
-    scenarioBranching.scenario.forEach(s => {
-        s.elements.filter(isPrincipal).forEach(p => {
-            p.name.forEach(n => {
+function checkScenarioPrincipal(scenario: ScenarioBranching, principals: Set<string>, accept: ValidationAcceptor): void {
+    scenario.scenario.forEach(s => {
+        s.elements.filter(isPrincipal).forEach(principal => {
+            principal.name.forEach(n => {
                 principals.add(n)
             })
         })
     })
 
-    // check communications in this scenario
-    scenarioBranching.scenario.forEach(s => {
-        s.elements.filter(isCommunication).forEach(c => {
-            const partners = (c.from).concat(c.to)
-            partners.forEach(p => {
-                if (!principals.has(p)) {
-                    accept(`error`, `Unknown principal "${p}"`, { node: c })
+    scenario.scenario.forEach(sc => {
+        const communications = sc.elements.filter(isCommunication)
+        communications.forEach(communication => {
+            const senders = communication.from
+            const receivers = communication.to
+            const partners = senders.concat(receivers)
+
+            partners.forEach(principal => {
+                if (!principals.has(principal)) {
+                    accept(`error`, `Unknown principal "${principal}"`, { node: communication })
                 }
             })
         })
     })
 
-    // check authentication checks in this scenario
-    scenarioBranching.scenario.forEach(s => {
-        s.elements.filter(isCheck).filter(isAuthenticationCheck).forEach(ac => {
-            if (!principals.has(ac.principal)) {
-                accept(`error`, `Unknown principal "${ac.principal}"`, {node: ac})
+    scenario.scenario.forEach(sc => {
+        const authenticationChecks = sc.elements.filter(isCheck).filter(isAuthenticationCheck)
+        authenticationChecks.forEach(authCheck => {
+            if (!principals.has(authCheck.principal)) {
+                accept(`error`, `Unknown principal "${authCheck.principal}"`, {node: authCheck})
             }
-            if (!principals.has(ac.target)) {
-                accept(`error`, `Unknown principal "${ac.target}"`, {node: ac})
+            if (!principals.has(authCheck.target)) {
+                accept(`error`, `Unknown principal "${authCheck.target}"`, {node: authCheck})
             }
         })
     })
 
-    // check knowledge checks in this scenario
-    scenarioBranching.scenario.forEach(s => {
-        s.elements.filter(isCheck).filter(isKnowledgeCheck).forEach(kc => {
-            kc.target.forEach(p => {
-                if (!principals.has(p)) {
-                    accept(`error`, `Unknown principal "${p}"`, {node: kc})
+    scenario.scenario.forEach(sc => {
+        const knowledgeChecks = sc.elements.filter(isCheck).filter(isKnowledgeCheck)
+        knowledgeChecks.forEach(knowCheck => {
+            knowCheck.target.forEach(principal => {
+                if (!principals.has(principal)) {
+                    accept(`error`, `Unknown principal "${principal}"`, {node: knowCheck})
                 }
             })
         })
     })
 
-    // if this scenario has more scenario nested in it, call recursively
-    scenarioBranching.scenario.forEach(s => {
-        const nestedScenarios = s.elements.filter(isScenarioBranching)
-        if (nestedScenarios.length === 0) {
+    scenario.scenario.forEach(sc => {
+        const nestedSc = sc.elements.filter(isScenarioBranching)
+        if (nestedSc.length === 0) {
             return
         } else {
-            nestedScenarios.forEach(ns => {
+            nestedSc.forEach(ns => {
                 checkScenarioPrincipal(ns, principals, accept)
             })
         }
