@@ -1,5 +1,5 @@
 import { MaybePromise, ValidationAcceptor, ValidationChecks } from "langium"
-import { KantAstType, Protocol, AuthenticationCheck, Communication, isPrincipal, isCommunication, isCheck, isAuthenticationCheck, isScenarioBranching, ScenarioBranching, isKnowledgeBase, isKnowledgeDef, isKnowledgeDefCustom, isKnowledgeDefCustomName, isKnowledgeRef, isKnowledgeList, isKnowledgeSet, isKnowledge, isKnowledgeValue, isKnowledgeDefBuiltin, isKnowledgeDefDestructuring, isKnowledgeDefListDestructuring, isKnowledgeDefListDestructuringAssignment, isKnowledgeDefSetDestructuring, isEqualityCheck, isFreshnessCheck, isLinkabilityCheck, isKnowledgeFromFunction, isKnowledgeFromFunctionArgsElements } from "./generated/ast"
+import { KantAstType, Protocol, AuthenticationCheck, Communication, isPrincipal, isCommunication, isCheck, isAuthenticationCheck, isScenarioBranching, ScenarioBranching, isKnowledgeBase, isKnowledgeDef, isKnowledgeDefCustom, isKnowledgeDefCustomName, isKnowledgeRef, isKnowledgeList, isKnowledgeSet, isKnowledge, isKnowledgeValue, isKnowledgeDefBuiltin, isKnowledgeDefDestructuring, isKnowledgeDefListDestructuring, isKnowledgeDefListDestructuringAssignment, isKnowledgeDefSetDestructuring, isEqualityCheck, isFreshnessCheck, isLinkabilityCheck, isKnowledgeFromFunction, isKnowledgeFromFunctionArgsElements, KnowledgeBase } from "./generated/ast"
 import { isFunctionDef, isKnowledgeCheck } from "./generated/ast"
 import type { KantServices } from "./module"
 
@@ -15,7 +15,8 @@ export function registerValidationChecks(services: KantServices): void {
             KantValidator.checkPrincipalIsKnown,
             KantValidator.checkNonSetNestedKnowledgeAccess,
             KantValidator.checkKnowledgeUsage,
-            KantValidator.checkUnknownFunctionUsage
+            KantValidator.checkUnknownFunctionUsage,
+            KantValidator.checkCommunicationAttemptOfKnowledgeUnknownToSender
         ],
         AuthenticationCheck: [
             KantValidator.checkAuthenticationPrincipalIsNotDuplicate
@@ -377,6 +378,235 @@ export const KantValidator = {
                         if (!functionNames.has(name)) {
                             accept(`error`, `Unknown function usage`, { node: kb.knowledge })
                         }
+            }
+        })
+    },
+    /**
+     * 
+     * @param protocol 
+     * @param accept 
+     */
+    checkCommunicationAttemptOfKnowledgeUnknownToSender: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
+        const principalSet = new Set<string>()
+        const principalMap = new Map<string, Set<string>>()
+        const principals = protocol.elements.filter(isPrincipal)
+        principals.forEach(principal => {
+            principal.name.forEach(name => {
+                if (!principalSet.has(name)) {
+                    principalSet.add(name)
+                    principalMap.set(name, new Set<string>())
+                }
+            })
+        })
+
+        principals.forEach(principal => {
+            if (principal.knowledge !== undefined) {
+                if (isKnowledgeDef(principal.knowledge)) {
+                    if (isKnowledgeDefBuiltin(principal.knowledge)) {
+                        const knowledgeToInsert = principal.knowledge.name
+                        principal.name.forEach(name => {
+                            knowledgeToInsert.forEach(k => {
+                                principalMap.get(name)?.add(k)
+                            })
+                        })
+                    }
+                    if (isKnowledgeDefCustom(principal.knowledge)) {
+                        if (isKnowledgeDefCustomName(principal.knowledge.left)) {
+                            const knowledgeToInsert = principal.knowledge.left.name
+                            principal.name.forEach(name => {
+                                principalMap.get(name)?.add(knowledgeToInsert)
+                            })
+                        }
+                    }
+                }
+                if (isKnowledgeValue(principal.knowledge)) {
+                    if (isKnowledgeList(principal.knowledge)) {
+                        principal.knowledge.values.forEach(value => {
+                            if (isKnowledgeRef(value)) {
+                                const knowledgeToInsert = value.ref
+                                principal.name.forEach(name => {
+                                    principalMap.get(name)?.add(knowledgeToInsert)      
+                                })
+                            }
+                        })
+                    }
+                    if (isKnowledgeRef(principal.knowledge)) {
+                        const knowledgeToInsert = principal.knowledge.ref
+                        principal.name.forEach(name => {
+                            principalMap.get(name)?.add(knowledgeToInsert)
+                            
+                        })
+                    }
+                    if (isKnowledgeSet(principal.knowledge)) {
+                        principal.knowledge.content.forEach(content => {
+                            if (isKnowledgeDef(content)) {
+                                if (isKnowledgeDefBuiltin(content)) {
+                                    content.name.forEach(knowledgeName => {
+                                        const knowledgeToInsert = knowledgeName    
+                                        principal.name.forEach(name => {
+                                            principalMap.get(name)?.add(knowledgeToInsert)
+                                            
+                                        })
+                                    })
+                                }
+                                if (isKnowledgeDefCustom(content)) {
+                                    if (isKnowledgeDefCustomName(content.left)) {
+                                        const knowledgeToInsert = content.left.name
+                                        principal.name.forEach(name => {
+                                            principalMap.get(name)?.add(knowledgeToInsert)
+                                        
+                                        })
+                                    }
+                                }
+                            }
+                            if (isKnowledgeValue(content)) {
+                                if (isKnowledgeRef(content)) {
+                                    const knowledgeToInsert = content.ref
+                                    principal.name.forEach(name => {
+                                        principalMap.get(name)?.add(knowledgeToInsert)
+                                    })
+                                }
+                            }
+                        })
+                    }
+                }
+            }
+        })
+
+        const knowledgeBases = new Set<KnowledgeBase>()
+        protocol.elements.filter(isKnowledgeBase).forEach(kb => {
+            if (kb.shared) {
+                knowledgeBases.add(kb)
+            }
+        })
+
+        knowledgeBases.forEach(kb => {
+            if (isKnowledgeDef(kb.knowledge)) {
+                if (isKnowledgeDefBuiltin(kb.knowledge)) {
+                    const knowledgeToInsert = kb.knowledge.name
+                    knowledgeToInsert.forEach(kn => {
+                        principalSet.forEach(principal => {
+                            principalMap.get(principal)?.add(kn)
+                        })
+                    })
+                }
+                if (isKnowledgeDefCustom(kb.knowledge)) {
+                    if (isKnowledgeDefCustomName(kb.knowledge.left)) {
+                        const knowledgeToInsert = kb.knowledge.left.name
+                        principalSet.forEach(principal => {
+                            principalMap.get(principal)?.add(knowledgeToInsert)
+                        })
+                    }
+                }
+            }
+
+            if (isKnowledgeValue(kb.knowledge)) {
+                if (isKnowledgeList(kb.knowledge)) {
+                    kb.knowledge.values.forEach(value => {
+                        if (isKnowledgeRef(value)) {
+                            const knowledgeToInsert = value.ref
+                            principalSet.forEach(principal => {
+                                principalMap.get(principal)?.add(knowledgeToInsert)
+                            }) 
+                        }
+                    })
+                }
+                if (isKnowledgeRef(kb.knowledge)) {
+                    const knowledgeToInsert = kb.knowledge.ref
+                    principalSet.forEach(principal => {
+                        principalMap.get(principal)?.add(knowledgeToInsert)
+                    })
+                }
+                if (isKnowledgeSet(kb.knowledge)) {
+                    kb.knowledge.content.forEach(content => {
+                        if (isKnowledgeDef(content)) {
+                            if (isKnowledgeDefBuiltin(content)) {
+                                content.name.forEach(knowledgeName => {
+                                    const knowledgeToInsert = knowledgeName    
+                                    principalSet.forEach(principal => {
+                                        principalMap.get(principal)?.add(knowledgeToInsert)
+                                    })
+                                })
+                            }
+                            if (isKnowledgeDefCustom(content)) {
+                                if (isKnowledgeDefCustomName(content.left)) {
+                                    const knowledgeToInsert = content.left.name
+                                    principalSet.forEach(principal => {
+                                        principalMap.get(principal)?.add(knowledgeToInsert)
+                                    })
+                                }
+                            }
+                        }
+                        if (isKnowledgeValue(content)) {
+                            if (isKnowledgeRef(content)) {
+                                const knowledgeToInsert = content.ref
+                                principalSet.forEach(principal => {
+                                    principalMap.get(principal)?.add(knowledgeToInsert)
+                                })
+                            }
+                        }
+                    })
+                }
+            }
+        })
+
+        const communications = protocol.elements.filter(isCommunication)
+        communications.forEach(communication => {
+            const senders = communication.from
+            const receivers = communication.to
+
+            if (isKnowledgeDef(communication.knowledge)) {
+                if (isKnowledgeDefCustom(communication.knowledge)) {
+                    const value = communication.knowledge.value
+                    if (isKnowledgeRef(value)) {
+                        const ref = value.ref
+                        senders.forEach(sender => {
+                            const senderKnowledge = principalMap.get(sender)
+                            if (!((senderKnowledge?.has(ref)) ?? false)) {
+                                accept(`error`, `Sender ${sender} doesn't know this knowledge`, { node: communication })
+                            } 
+                                receivers.forEach(receiver => {
+                                    principalMap.get(receiver)?.add(ref)
+                                })
+                            
+                        })
+                    } 
+                    if (isKnowledgeList(value)) {
+                        const listContent = value.values
+                        listContent.forEach(content => {
+                            if (isKnowledgeValue(content)) {
+                                if (isKnowledgeRef(content)) {
+                                    senders.forEach(sender => {
+                                        const senderKnowledge = principalMap.get(sender)
+                                        if (!((senderKnowledge?.has(content.ref)) ?? false)) {
+                                            accept(`error`, `Sender ${sender} doesn't know this knowledge`, { node: communication })
+                                        }
+                                            receivers.forEach(receiver => {
+                                                principalMap.get(receiver)?.add(content.ref)
+                                            })
+                                        
+                                    })
+                                }
+                            }
+                        })
+                    }
+                    
+                }
+            }
+
+            if (isKnowledgeValue(communication.knowledge)) {
+                if (isKnowledgeRef(communication.knowledge)) {
+                    const ref = communication.knowledge.ref
+                    senders.forEach(sender => {
+                        const senderKnowledge = principalMap.get(sender)
+                        if (!((senderKnowledge?.has(ref)) ?? false)) {
+                            accept(`error`, `Sender ${sender} doesn't know this knowledge`, { node: communication })
+                        }
+                            receivers.forEach(receiver => {
+                                principalMap.get(receiver)?.add(ref)
+                            })
+                    })
+                }
             }
         })
     }
