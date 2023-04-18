@@ -16,7 +16,8 @@ export function registerValidationChecks(services: KantServices): void {
             KantValidator.checkNonSetNestedKnowledgeAccess,
             KantValidator.checkKnowledgeUsage,
             KantValidator.checkUnknownFunctionUsage,
-            KantValidator.checkCommunicationAttemptOfKnowledgeUnknownToSender
+            KantValidator.checkCommunicationAttemptOfKnowledgeUnknownToSender,
+            KantValidator.checkInversionFunctionIsCorrect
         ],
         AuthenticationCheck: [
             KantValidator.checkAuthenticationPrincipalIsNotDuplicate
@@ -606,6 +607,46 @@ export const KantValidator = {
                                 principalMap.get(receiver)?.add(ref)
                             })
                     })
+                }
+            }
+        })
+    },
+    /**
+     * 
+     * @param protocol 
+     * @param accept 
+     */
+    checkInversionFunctionIsCorrect: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
+        const functionDefs = protocol.elements.filter(isFunctionDef)
+
+        const properties = protocol.elements.filter(isPropertyDef)
+        properties.forEach(propertyDef => {
+            if (isFunctionInversionDef(propertyDef.property)) {
+                const inverter = propertyDef.property.inverter
+                const inverted = propertyDef.property.function
+
+                var invertedFunctionParamsCount = 0
+                var inverterFunctionParamsCount = 0;
+                
+                functionDefs.forEach(functionDef => {
+                    if (inverted.ref !== undefined) {
+                        if (functionDef.name === inverted.ref.name) {
+                            
+                            invertedFunctionParamsCount = functionDef.params.length 
+                        }
+                    }
+                    if (inverter.ref !== undefined) {
+                        if (functionDef.name === inverter.ref.name) {
+                            inverterFunctionParamsCount = functionDef.params.length
+                        }
+                    }
+                })
+
+                if (invertedFunctionParamsCount !== inverterFunctionParamsCount) {
+                    if (inverter.ref !== undefined) {
+                        accept(`error`, `Inversion function ${inverter.ref.name} has incompatible number of parameters compared to inverted function`, { node: propertyDef })
+
+                    }
                 }
             }
         })
