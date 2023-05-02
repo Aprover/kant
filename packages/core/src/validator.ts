@@ -18,7 +18,8 @@ export function registerValidationChecks(services: KantServices): void {
             KantValidator.checkUnknownFunctionUsage,
             KantValidator.checkCommunicationAttemptOfKnowledgeUnknownToSender,
             KantValidator.checkInversionFunctionIsCorrect,
-            KantValidator.checkKnowledgeIsNotDuplicateInSameScope
+            KantValidator.checkKnowledgeIsNotDuplicateInSameScope,
+            KantValidator.checkKnowledgeSpreadingOfNonSetOrNonListValues
         ],
         AuthenticationCheck: [
             KantValidator.checkAuthenticationPrincipalIsNotDuplicate
@@ -720,6 +721,137 @@ export const KantValidator = {
                             }
                         }
                     })
+                }
+            }
+        })
+    },
+    /**
+     * 
+     * @param protocol 
+     * @param accept 
+     */
+    checkKnowledgeSpreadingOfNonSetOrNonListValues: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
+        const knowledgeSetNames = new Set<string>()
+        const knowledgeListNames = new Set<string>()
+
+        protocol.elements.filter(isKnowledgeBase).forEach(knowledgeBase => {
+            
+            if (isKnowledgeDef(knowledgeBase.knowledge)) {
+                if (isKnowledgeDefCustom(knowledgeBase.knowledge)) {
+                    
+                    // troviamo i set
+                    if (isKnowledgeSet(knowledgeBase.knowledge.value)) {
+                        
+                        let setName: string = "null"
+
+                        // se abbiamo un set, devo prendere il nome
+                        if (isKnowledgeDefCustomName(knowledgeBase.knowledge.left)) {
+                            setName = knowledgeBase.knowledge.left.name
+                            knowledgeSetNames.add(setName)
+                        }
+
+                        // ora abbiamo il nome del set, cosa facciamo? cerchiamo altri set al suo interno
+                        // cerchiamo altre def custom, che siano set o list
+
+                        const setKnowledgeDef = knowledgeBase.knowledge.value.content.filter(ast.isKnowledgeDef)
+                        setKnowledgeDef.forEach(knowledgeDef => {
+                            if (isKnowledgeDefCustom(knowledgeDef)) {
+                                if (isKnowledgeSet(knowledgeDef.value)) {
+                                    if (isKnowledgeDefCustomName(knowledgeDef.left)) { 
+                                        if (setName !== "null") {
+                                            const innerSet = setName.concat(".").concat(knowledgeDef.left.name)
+                                            knowledgeSetNames.add(innerSet)
+                                        }
+                                    }
+                                }
+                                if (isKnowledgeList(knowledgeDef.value)) {
+                                    if (isKnowledgeDefCustomName(knowledgeDef.left)) { 
+                                        if (setName !== "null") {
+                                            const innerList = setName.concat(".").concat(knowledgeDef.left.name)
+                                            knowledgeListNames.add(innerList)
+                                        }
+                                    }
+                                }
+                            }
+                        })
+                    
+                    }
+
+                    // troviamo le list
+                    if (isKnowledgeList(knowledgeBase.knowledge.value)) {
+                        // se abbiamo una lista, devo prendere il nome 
+                        if (isKnowledgeDefCustomName(knowledgeBase.knowledge.left)) {
+                            knowledgeListNames.add(knowledgeBase.knowledge.left.name)
+                        }
+                        // ora abbiamo il nome della lista
+                    }
+                }
+            }
+        })
+
+        const finalSet = new Set<string>()
+        knowledgeListNames.forEach(listName => {
+            finalSet.add(listName)
+        })
+        knowledgeSetNames.forEach(setName => {
+            finalSet.add(setName)
+        })
+
+        const knowledgeBases = protocol.elements.filter(isKnowledgeBase)
+        knowledgeBases.forEach(knowledgeBase => {
+            if (isKnowledgeDef(knowledgeBase.knowledge)) {
+                if (isKnowledgeDefCustom(knowledgeBase.knowledge)) {
+                    if (isKnowledgeSet(knowledgeBase.knowledge.value)) {
+                        const knowledgeSet = knowledgeBase.knowledge.value
+                        knowledgeSet.content.forEach(setContent => {
+                            if (isKnowledgeSpreading(setContent)) {
+                                if (isKnowledgeRef(setContent.ref)) {
+                                    let toCheck = setContent.ref.ref
+                                    if (setContent.ref.access.length !== 0) {
+                                        toCheck = toCheck.concat(".").concat(setContent.ref.access.toString())
+                                    }
+                                    // accept(`info`, `${toCheck}`, { node: protocol })
+                                    if (!finalSet.has(toCheck)) {
+                                        accept(`error`, `Knowledge reference spreading of non set or non list values.`, { node: setContent })
+                                    }
+                                }
+                            }
+                        })
+                    }
+                    if (isKnowledgeList(knowledgeBase.knowledge.value)) {
+                        const knowledgeList = knowledgeBase.knowledge.value
+                        knowledgeList.values.forEach(listValue => {
+                            if (isKnowledgeSpreading(listValue)) {
+                                if (isKnowledgeRef(listValue.ref)) {
+                                    let toCheck = listValue.ref.ref
+                                    if (listValue.ref.access.length !== 0) {
+                                        toCheck = toCheck.concat(".").concat(listValue.ref.access.toString())
+                                    }
+                                    // accept(`info`, `${toCheck}`, { node: protocol })
+                                    if (!finalSet.has(toCheck)) {
+                                        accept(`error`, `Knowledge reference spreading of non set or non list values.`, { node: listValue })
+                                    }
+                                }
+                            }
+                        })
+                    }
+
+                    if (isKnowledgeFromFunction(knowledgeBase.knowledge.value)) {
+                        if (knowledgeBase.knowledge.value.args !== undefined) {
+                            if (isKnowledgeSpreading(knowledgeBase.knowledge.value.args)) {
+                                if (isKnowledgeRef(knowledgeBase.knowledge.value.args.ref)) {
+                                    let x = knowledgeBase.knowledge.value.args.ref
+                                    let toCheck = x.ref
+                                    if (x.access.length !== 0) {
+                                        toCheck = toCheck.concat(".").concat(x.access.toString())
+                                    }
+                                    if (!finalSet.has(toCheck)) {
+                                        accept(`error`, `Knowledge reference spreading of non set or non list values.`, { node: x })
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         })
