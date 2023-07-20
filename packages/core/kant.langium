@@ -4,7 +4,7 @@ entry Protocol:
     elements+=Element*;
 
 Element:
-    FunctionDef | PropertyDef | KnowledgeBase | Principal | Communication | ScenarioBranching | Check;
+    FunctionDef | PropertyDef | SharedKnowledgeDef | Principals | PrincipalKnowledgeDef | Communication | ScenarioBranching | Check;
 
 UniversalIntroduction:
     ('forall' args+=ID (',' args+=ID)* ':')
@@ -18,7 +18,7 @@ FunctionDef:
 	( 'with' key=FunctionKey)?
 	(
 		'->' return=FunctionReturn
-	)?
+	)
 	(randomized?='randomized')?
 	(ow?='one' 'way')?
 ;
@@ -36,8 +36,8 @@ FunctionKeyElement:
 ;
 
 FunctionReturn:
-    elements+=FunctionReturnElement
-	| '{' elements+=FunctionReturnElement (',' elements+=FunctionReturnElement)* '}'
+    '[' elements+=FunctionReturnElement ']'
+	| '[' elements+=FunctionReturnElement (',' elements+=FunctionReturnElement)* ']'
 ;
 
 FunctionReturnElement:
@@ -57,11 +57,21 @@ FunctionInversionDef:
     inverter=[FunctionDef:ID] 'invert' function=[FunctionDef:ID]
 ;
 
-KnowledgeBase:
-    (shared?='shared')? 'knowledge' knowledge=Knowledge;
+SharedKnowledgeDef:
+    'shared' 'knowledge' knowledge=Knowledge
+;
+
+Principals:
+    'principal' elements+=Principal (',' elements+=Principal)*
+;
 
 Principal:
-    'principal' name+=ID (',' name+=ID)* ('know' knowledge=Knowledge)?;
+    name=ID
+;
+
+PrincipalKnowledgeDef:
+    target+=[Principal:ID] (',' target+=[Principal:ID])* 'know' '{' knowledge+=Knowledge (',' knowledge+=Knowledge)* '}'
+;
 
 Knowledge:
     KnowledgeDef | KnowledgeValue;
@@ -121,6 +131,11 @@ KnowledgeValue:
 	| KnowledgeSet
 	| KnowledgeGenerator
 	| KnowledgeFromFunction
+    | ListAccess
+;
+
+ListAccess:
+    ref=ID '[' index=INT ']'
 ;
 
 KnowledgeList:
@@ -139,7 +154,7 @@ KnowledgeGenerator:
     'gen' type=STRING;
 
 KnowledgeFromFunction:
-    name=ID '(' args=KnowledgeFromFunctionArgs? ')'
+    invoked=[FunctionDef:ID] '(' args=KnowledgeFromFunctionArgs? ')'
 	('with' key=KnowledgeValue)?;
 
 KnowledgeFromFunctionArgs:
@@ -152,7 +167,8 @@ KnowledgeFromFunctionArgsElements:
 ;
 
 Communication:
-    ('(' messageId=ID ')')? from+=ID (',' from+=ID)* '->' to+=ID (',' to+=ID)* ':' knowledge=Knowledge;
+    ('(' messageId=ID ')')? from=[Principal:ID] '->' to+=[Principal:ID] (',' to+=[Principal:ID])* ':' (ref+=KnowledgeRef | '[' ref+=KnowledgeRef (',' ref+=KnowledgeRef)* ']')
+;
 
 ScenarioBranching:
     ScenarioOptional
@@ -175,7 +191,7 @@ Check:
 	| AuthenticationCheck);
 
 KnowledgeCheck:
-    (here?='here')? (only?='only')? (target+=ID (',' target+=ID)*) ('should' (not?='not')? 'know') knowledge=KnowledgeValue;
+    (here?='here')? (only?='only')? (target+=[Principal:ID] (',' target+=[Principal:ID])*) ('should' (not?='not')? 'know') knowledge=KnowledgeValue;
 
 EqualityCheck:
     knowledge+=KnowledgeRef (',' knowledge+=KnowledgeRef)+ 'should' (not?='not')? 'be' 'equal';
@@ -187,11 +203,12 @@ LinkabilityCheck:
     knowledge+=KnowledgeRef (',' knowledge+=KnowledgeRef)+ 'should' (not?='not')? 'be' 'linked';
 
 AuthenticationCheck:
-    principal=ID 'should' 'authenticate' target=ID 'with' knowledge=KnowledgeValue;
+    from=[Principal:ID] 'should' 'authenticate' target=[Principal:ID] 'with' knowledge=KnowledgeValue;
 
 
 terminal ID returns string: /[a-zA-Z]([a-zA-Z0-9_])*/;
 terminal STRING returns string: '"' ( '\\' . /* 'b'|'t'|'n'|'f'|'r'|'u'|'"'|"'"|'\\' */ | !('\\'|'"') )* '"';
+terminal INT returns number: /[0-9]+/;
 hidden terminal WS:             /\s+/;
 hidden terminal ML_COMMENT:     /\/\*[\s\S]*?\*\//;
 hidden terminal SL_COMMENT:     /\/\/[^\n\r]*/;

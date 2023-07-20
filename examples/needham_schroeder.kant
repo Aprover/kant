@@ -1,10 +1,12 @@
-principal Alice know {
+principal Alice, Bob
+
+Alice know {
 	const a,
 	fresh na,
 	ga = PUB_GEN(a)
 }
 
-principal Bob know {
+Bob know {
 	const b,
 	fresh nb,
 	gb = PUB_GEN(b)
@@ -14,30 +16,33 @@ Alice -> Bob: ga
 
 Bob -> Alice: gb
 
-principal Alice know {
+Alice know {
 	e1 = PKE_ENC(na) with gb
 }
 
 Alice -> Bob: e1
 
-principal Bob know {
+Bob know {
 	na_bob = PKE_DEC(e1) with b,
 	e2 = PKE_ENC(CONCAT(na_bob, nb)) with ga
 }
 
 Bob -> Alice: e2
 
-principal Alice know {
+Alice know {
 	m2 = PKE_DEC(e2) with a,
-	[na_bob_alice, nb_alice] = SPLIT(m2),
-	e3 = PKE_ENC(gb, nb_alice)
+	//[na_bob_alice, nb_alice] = SPLIT(m2),
+    splitted = SPLIT(m2),
+	na_bob_alice = splitted[0],
+	nb_alice = splitted[1],
+	e3 = PKE_ENC(gb, splitted[1])
 }
 
 check na, na_bob_alice should be equal
 
 Alice -> Bob: e3
 
-principal Bob know {
+Bob know {
 	nb_alice_bob = PKE_DEC(e3) with b
 }
 

@@ -1,55 +1,57 @@
 shared knowledge const null
 
-principal Alice know {
+principal Alice, Bob
+
+Alice know {
 	const longTermA,
 	fresh ephemeralA,
 	longTermAPub = PUB_GEN(longTermA),
 	ephemeralAPub = PUB_GEN(ephemeralA)
 }
 
-principal Bob know {
+Bob know {
 	const longTermB,
 	fresh ephemeralB,
 	longTermBPub = PUB_GEN(longTermB),
 	ephemeralBPub = PUB_GEN(ephemeralB)
 }
 
-principal Alice, Bob know {
+Alice, Bob know {
 	const n
 }
 
 Bob -> Alice : longTermBPub
 
-principal Alice know {
+Alice know {
 	nMacAlice = MAC(n, ephemeralAPub)
 }
 
-Alice -> Bob : { ephemeralAPub, nMacAlice }
+Alice -> Bob : [ ephemeralAPub, nMacAlice ]
 
-principal Bob know {
+Bob know {
 	nMacAliceCheck = MAC(n, ephemeralAPub),
 	nMacBob = MAC(n, ephemeralBPub)
 }
 
 check nMacAlice, nMacAliceCheck should be equal
 
-Bob -> Alice : { ephemeralBPub, nMacBob }
+Bob -> Alice : [ ephemeralBPub, nMacBob ]
 
-principal Alice know {
+Alice know {
 	nMacBobCheck = MAC(n, ephemeralBPub),
 	ephemeralSecretAlice = DF(ephemeralBPub, ephemeralA),
-	longTermSecretAlice = DF(longTermBPubl, ephemeralA),
+	longTermSecretAlice = DF(longTermBPub, ephemeralA),
 	masterSecret1Alice = HASH({ n, ephemeralSecretAlice, longTermSecretAlice }),
 	sig1Alice = SIGN(HASH({ n, longTermBPub, ephemeralSecretAlice })) with longTermA,
 	secretBox1Alice = AEAD_ENC(sig1Alice) with { k=masterSecret1Alice, auth=null },
 	secretBox2Alice = AEAD_ENC(longTermAPub) with { k=masterSecret1Alice, auth=null },
 	longEphemeralSecretAlice = DF(ephemeralBPub, longTermA),
-	masterSecret2Alice = HASH({ n, epehemeralSecretAlice, longTermSecretAlice, longEhemeralSecretAlice })
+	masterSecret2Alice = HASH({ n, ephemeralSecretAlice, longTermSecretAlice, longEphemeralSecretAlice })
 }
 
-Alice -> Bob : { secretBox1Alice, secretBox2Alice }
+Alice -> Bob : [ secretBox1Alice, secretBox2Alice ]
 
-principal Bob know {
+Bob know {
 	ephemeralSecretBob = DF(ephemeralAPub, ephemeralB),
 	longTermSecretBob = DF(ephemeralAPub, longTermB),
 	masterSecret1Bob = HASH({ n, ephemeralSecretBob, longTermSecretBob }),
@@ -62,7 +64,7 @@ principal Bob know {
 check sig1Bob, secretBox1Alice should be equal
 check longTermAPub_Bob, secretBox2Alice should be equal
 
-principal Bob know {
+Bob know {
 	sig2Bob = SIGN(longTermB, HASH({ n, sig1Bob, longTermAPub_Bob, ephemeralSecretBob })),
 	masterSecret2Bob = HASH({ n, ephemeralSecretBob, longTermSecretBob, longEphemeralSecretBob }),
 	secretBox1Bob = AEAD_ENC(sig2Bob) with { k=masterSecret2Bob, auth=null }
@@ -70,7 +72,7 @@ principal Bob know {
 
 Bob -> Alice : secretBox1Bob
 
-principal Alice know {
+Alice know {
 	const m1,
 	sig2Alice = AEAD_DEC(secretBox1Bob) with { k=masterSecret2Alice, auth=null },
 	SIGNVERIF(HASH({ n, sig1Alice, longTermAPub, ephemeralSecretAlice })) with { k=longTermBPub, sign=sig2Alice },
@@ -81,7 +83,7 @@ check sig2Alice, sig2Bob should be equal
 
 Alice -> Bob : secretBoxM1Alice
 
-principal Bob know {
+Bob know {
 	const m2,
 	m1Bob = AEAD_DEC(secretBoxM1Alice) with { k=masterSecret2Bob, auth=null },
 	secretBoxM2Bob = AEAD_ENC(m2) with { k=masterSecret2Bob, auth=null }
@@ -91,13 +93,14 @@ check m1Bob, m1 should be equal
 
 Bob -> Alice : secretBoxM2Bob
 
-principal Alice know {
+Alice know {
 	m2Alice = AEAD_DEC(secretBoxM2Bob) with { k=masterSecret2Alice, auth=null }
 }
 
 check m2Alice, m2 should be equal
 
-check here only Alice, Bob should know { m1, m2 }
+check here only Alice, Bob should know m1
+check here only Alice, Bob should know m2 
 check Bob should authenticate Alice with secretBox1Alice
 check Bob should authenticate Alice with secretBox2Alice
 check Alice should authenticate Bob with secretBox1Bob

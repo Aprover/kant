@@ -1,24 +1,34 @@
-import { MaybePromise, ValidationAcceptor, ValidationChecks } from "langium"
-import { KantAstType, Protocol, AuthenticationCheck, Communication, Principal } from "./generated/ast"
+import type { MaybePromise, ValidationAcceptor, ValidationChecks } from "langium"
+import type { Protocol } from "./generated/ast"
+import { type KantAstType } from "./generated/ast"
 import type { KantServices } from "./module"
-import { nonSetNestedKnowledgeAccess } from "./validation/non-set-nested-knowledge-access"
-import { unknownPrincipalUsage } from "./validation/unknown-principal-usage"
-import { duplicatePrincipalInCommunication } from "./validation/duplicate-principal-in-communication"
-import { duplicatePrincipalInAuthenticationCheck } from "./validation/duplicate-principal-in-authentication-check"
-import { uniqueFunctionName } from "./validation/unique-function-name"
-import { unknownFunctionUsage } from "./validation/unknown-function-usage"
-import { unknownKnowledgeUsage } from "./validation/unknown-knowledge-usage"
-import { communicationAttemptOfKnowledgeUnknownToSender } from "./validation/communication-attempt-of-knowledge-unknown-to-sender"
-import { invertionFunctionWithWrongNumberOfParameters } from "./validation/inversion-function-wrong-number-parameters"
-import { duplicateKnowledgeNameInSameScope } from "./validation/duplicate-knowledge-name-in-same-scope"
-import { knowledgeReferenceSpreadingOfNonSetNonListValues } from "./validation/knowledge-reference-spreading-not-set-non-list"
-import { knowledgeReferenceSpreadingOfWrongValueForTargetValue } from "./validation/knowledge-reference-spreading-wrong-for-target"
-import { invertedOneWayFunctions } from "./validation/inverted-one-way-function"
-import { destructuringNonSetNonListValues } from "./validation/destructuring-non-set-non-list-values"
-import { variadicParameterNotLast } from "./validation/variadic-parameter-not-last"
-import { variadicParamsNotListInsideSet } from "./validation/variadic-params-not-list-inside-set"
-import { freshConstInEqualityCheck } from "./validation/fresh-const-equality-check"
-import { duplicatePrincipalInDeclaration } from "./validation/duplicate-principal-in-declaration"
+import { arrayNotationList } from "./validation/functions/array-notation-list"
+import { consecutiveCommunications } from "./validation/functions/consecutive-communication"
+import { debug } from "./validation/functions/debug"
+import { functionsAllCaps } from "./validation/functions/functions-all-caps"
+import { inversionFunctionWithWrongNumberOfParameters } from "./validation/functions/inversion-function-wrong-parameters"
+import { invertedOneWay } from "./validation/functions/inverted-one-way"
+import { knowledgeDeclarationBeforeUsage } from "./validation/functions/knowledge-declaration-before-usage"
+import { knowledgeInSharedDef } from "./validation/functions/knowledge-in-shared-def"
+import { knowledgeKnownToSender } from "./validation/functions/knowledge-known-to-sender"
+import { knowledgeShouldStartWithLowelcase } from "./validation/functions/knowledge-should-start-with-lowercase"
+import { minimumPrincipalsPerProtocol } from "./validation/functions/minimum-principal-per-protocol"
+import { nestedKnowledgeAccess } from "./validation/functions/nested-knowledge-access"
+import { noDuplicationInCommunicationReceivers } from "./validation/functions/no-duplication-communication-receivers"
+import { noFreshConstEquality } from "./validation/functions/no-fresh-const-equality"
+import { noSelfAuthentication } from "./validation/functions/no-self-authentication"
+import { noSelfCommunication } from "./validation/functions/no-self-communication"
+import { noUnusedPrincipals } from "./validation/functions/no-unused-principals"
+import { onlyRefInAuthenticationCheck } from "./validation/functions/only-ref-in-authentication-check"
+import { onlyRefInKnowledgeCheck } from "./validation/functions/only-ref-in-knowledge-check"
+import { principalShoudlStartWithCapitalLetter } from "./validation/functions/principal-should-start-with-capital-letter"
+import { referenceSpreadingFunctionParams } from "./validation/functions/reference-spreading-function-params"
+import { uniqueCommunicationNames } from "./validation/functions/unique-communication-names"
+import { uniqueFunctionNames } from "./validation/functions/unique-function-names"
+import { uniqueKnowledgeNames } from "./validation/functions/unique-knowledge-names"
+import { uniquePrincipalNames } from "./validation/functions/unique-principal-names"
+import { uniqueScenarioNames } from "./validation/functions/unique-scenario-names"
+import { variadicParameterNotLast } from "./validation/functions/variadic-parameter-not-last"
 
 /**
  * Register custom validation checks.
@@ -28,30 +38,32 @@ export function registerValidationChecks(services: KantServices): void {
     const validator = services.validation.KantValidator
     const checks: ValidationChecks<KantAstType> = {
         Protocol: [
-            KantValidator.nonSetNestedKnowledgeAccess,
-            KantValidator.unknownPrincipalUsage,
-            KantValidator.uniqueFunctionName,
-            KantValidator.unknownFunctionUsage,
-            KantValidator.unknownKnowledgeUsage,
+            //KantValidator.debug,
+            KantValidator.uniqueKnowledgeNames,
+            KantValidator.uniquePrincipalNames,
+            KantValidator.noSelfCommunication,
+            KantValidator.principalShouldStartWithCapitalLetter,
+            KantValidator.noUnusedPrincipals,
+            KantValidator.noSelfAuthentication,
+            KantValidator.noDuplicationInCommunicationReceivers,
+            KantValidator.minimumPrincipalsPerProtocol,
+            KantValidator.knowledgeShouldStartWithLowercase,
+            KantValidator.onlyRefInKnowledgeCheck,
+            KantValidator.onlyRefInAuthenticationCheck,
+            KantValidator.noFreshConstEquality,
+            KantValidator.uniqueCommunicationNames,
+            KantValidator.uniqueScenarioNames,
+            KantValidator.uniqueFunctionNames,
+            KantValidator.functionsAllCaps,
+            KantValidator.knowledgeKnownToSender,
+            KantValidator.knowledgeInSharedDef,
+            KantValidator.invertedOneWay,
+            KantValidator.consecutiveCommunication,
+            KantValidator.arrayNotationList,
+            KantValidator.nestedKnowledgeAccess,
+            KantValidator.knowledgeDeclarationBeforeUsage,
             KantValidator.inversionFunctionWithWrongNumberOfParameters,
-            KantValidator.knowledgeReferenceSpreadingOfNonSetOrNonListValues,
-            KantValidator.knowledgeReferenceSpreadingOfWrongValueForTargetValue,
-            KantValidator.duplicateKnowledgeNameInSameScope,
-            KantValidator.destructuringNonSetNonListValues,
-            KantValidator.variadicParameterNotLast,
-            KantValidator.freshConstEqualityCheck, 
-            KantValidator.variadicParameterNotListInsideSet,
-            KantValidator.communicationAttemptOfKnowledgeUnknownToSender,
-            KantValidator.invertedOneWayFunctions
-        ],
-        Communication: [
-            KantValidator.duplicatePrincipalInCommunication
-        ],
-        AuthenticationCheck: [
-            KantValidator.duplicatePrincipalInAuthenticationCheck
-        ],
-        Principal: [
-            KantValidator.duplicatePrincipalInDeclaration
+            KantValidator.variadicParameterNotLast
         ]
     }
     registry.register(checks, validator)
@@ -61,67 +73,92 @@ export function registerValidationChecks(services: KantServices): void {
  * Implementation of custom validations.
  */
 export const KantValidator = {
-    nonSetNestedKnowledgeAccess: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
-        nonSetNestedKnowledgeAccess.nonSetNestedKnowledgeAccess(protocol, accept)
+    debug: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
+        debug.debug(protocol, accept)
     },
-    unknownPrincipalUsage: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
-        unknownPrincipalUsage.unknownPrincipalUsage(protocol, accept)
+    uniqueKnowledgeNames: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
+        uniqueKnowledgeNames.uniqueKnowledgeNames(protocol, accept)
     },
-    duplicatePrincipalInCommunication: (communication: Communication, accept: ValidationAcceptor): MaybePromise<void> => {
-        duplicatePrincipalInCommunication.duplicatePrincipalInCommunication(communication, accept)
-    }
-    ,
-    duplicatePrincipalInAuthenticationCheck: (authenticationCheck: AuthenticationCheck, accept: ValidationAcceptor): MaybePromise<void> => {
-        duplicatePrincipalInAuthenticationCheck.duplicatePrincipalInAuthenticationCheck(authenticationCheck, accept)
+    /* communicationPayloadKnownToSender: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
+        communicationPayloadKnownToSender.communicationKnownToSender(protocol, accept)
+    }, */
+    uniquePrincipalNames: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
+        uniquePrincipalNames.uniquePrincipalNames(protocol, accept)
     },
-    uniqueFunctionName: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
-        uniqueFunctionName.uniqueFunctionName(protocol, accept)
-    }
-    ,
-    unknownFunctionUsage: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
-        unknownFunctionUsage.unknownFunctionUsage(protocol, accept)
-    }
-    ,
-    unknownKnowledgeUsage: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
-        unknownKnowledgeUsage.unknownKnowledgeUsage(protocol, accept)
-    }
-    ,
-    communicationAttemptOfKnowledgeUnknownToSender: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
-        communicationAttemptOfKnowledgeUnknownToSender.communicationAttemptOfKnowledgeUnknownToSender(protocol, accept)
-    }
-    ,
-    inversionFunctionWithWrongNumberOfParameters: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
-        invertionFunctionWithWrongNumberOfParameters.invertionFunctionWithWrongNumberOfParameters(protocol, accept)
-    }
-    ,
-    duplicateKnowledgeNameInSameScope: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
-        duplicateKnowledgeNameInSameScope.duplicateKnowledgeNameInSameScope(protocol, accept)
-    }
-    ,
-    knowledgeReferenceSpreadingOfNonSetOrNonListValues: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
-        knowledgeReferenceSpreadingOfNonSetNonListValues.knowledgeReferenceSpreadingOfNonSetNonListValues(protocol, accept)
-    }
-    ,
-    knowledgeReferenceSpreadingOfWrongValueForTargetValue: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
-        knowledgeReferenceSpreadingOfWrongValueForTargetValue.knowledgeReferenceSpreadingOfWrongValueForTargetValue(protocol, accept)  
+    noSelfCommunication: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
+        noSelfCommunication.noSelfCommunication(protocol, accept)
     },
-    invertedOneWayFunctions: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
-        invertedOneWayFunctions.invertedOneWayFunctions(protocol, accept)
+    principalShouldStartWithCapitalLetter: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
+        principalShoudlStartWithCapitalLetter.principalShoudlStartWithCapitalLetter(protocol, accept)
     },
-    destructuringNonSetNonListValues: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
-        destructuringNonSetNonListValues.destructuringNonSetNonListValues(protocol, accept)
+    noUnusedPrincipals: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
+        noUnusedPrincipals.noUnusedPrincipals(protocol, accept)
+    },
+    noSelfAuthentication: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
+        noSelfAuthentication.noSelfAuthentication(protocol, accept)
+    },
+    noDuplicationInCommunicationReceivers: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
+        noDuplicationInCommunicationReceivers.noDuplicationInCommunicationReceivers(protocol, accept)
+    },
+    minimumPrincipalsPerProtocol: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
+        minimumPrincipalsPerProtocol.minimumPrincipalsPerProtocol(protocol, accept)
+    },
+    knowledgeShouldStartWithLowercase: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
+        knowledgeShouldStartWithLowelcase.knowledgeShouldStartWithLowelcase(protocol, accept)
+    },
+    onlyRefInKnowledgeCheck: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
+        onlyRefInKnowledgeCheck.onlyRefInKnowledgeCheck(protocol, accept)
+    },
+    onlyRefInAuthenticationCheck: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
+        onlyRefInAuthenticationCheck.onlyRefInAuthenticationCheck(protocol, accept)
+    },
+    noFreshConstEquality: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
+        noFreshConstEquality.noFreshConstEquality(protocol, accept)
+    },
+    uniqueCommunicationNames: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
+        uniqueCommunicationNames.uniqueCommunicationNames(protocol, accept)
+    },
+    uniqueScenarioNames: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
+        uniqueScenarioNames.uniqueScenarioNames(protocol, accept)
+    },
+    uniqueFunctionNames: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
+        uniqueFunctionNames.uniqueFunctionNames(protocol, accept)
+    },
+    functionsAllCaps: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
+        functionsAllCaps.functionsAllCaps(protocol, accept)
+    },
+    knowledgeKnownToSender: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
+        knowledgeKnownToSender.knowledgeKnownToSender(protocol, accept)
+    },
+    knowledgeInSharedDef: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
+        knowledgeInSharedDef.knowledgeInSharedDef(protocol, accept)
+    },
+    invertedOneWay: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
+        invertedOneWay.invertedOneWay(protocol, accept)
+    },
+    consecutiveCommunication: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
+        consecutiveCommunications.consecutiveCommunications(protocol, accept)
+    },
+    arrayNotationList: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
+        arrayNotationList.arrayNotationList(protocol, accept)
+    },
+    nestedKnowledgeAccess: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
+        nestedKnowledgeAccess.nestedKnowledgeAccess(protocol, accept)
+    },
+    knowledgeDeclarationBeforeUsage: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
+        knowledgeDeclarationBeforeUsage.knowledgeDeclarationBeforeUsage(protocol, accept)
+    },
+    referenceSpreadingFunctionParams: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
+        referenceSpreadingFunctionParams.referenceSpreadingFunctionParams(protocol, accept)
+    },
+    inversionFunctionWithWrongNumberOfParameters: (
+        protocol: Protocol,
+        accept: ValidationAcceptor
+    ): MaybePromise<void> => {
+        inversionFunctionWithWrongNumberOfParameters.inversionFunctionWithWrongNumberOfParameters(protocol, accept)
     },
     variadicParameterNotLast: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
         variadicParameterNotLast.variadicParameterNotLast(protocol, accept)
-    },
-    variadicParameterNotListInsideSet: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
-        variadicParamsNotListInsideSet.variadicParamsNotListInsideSet(protocol, accept)
-    },
-    freshConstEqualityCheck: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
-        freshConstInEqualityCheck.freshConstInEqualityCheck(protocol, accept)
-    },
-    duplicatePrincipalInDeclaration: (principal: Principal, accept: ValidationAcceptor): MaybePromise<void> => {
-        duplicatePrincipalInDeclaration.duplicatePrincipalInDeclaration(principal, accept)
     }
 }
 

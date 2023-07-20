@@ -22,7 +22,8 @@
         "clean": "del-cli .jest coverage && pnpm run -r clean && pnpm run clean:docs",
         "clean:docs": "del-cli docs/output",
         "clean:generated": "pnpm run -r clean:generated",
-        "test:validation": "npm run generate && npm run build && npm run package:extension && tsc packages/core/src/validation/test/test-launcher.ts && node packages/core/src/validation/test/test-launcher.js"
+        "test:validation": "npm run generate && npm run build && npm run package:extension && tsc packages/core/src/validation-functions/test/test.ts && node packages/core/src/validation-functions/test/test.js",
+        "prepare": "pnpm run generate && pnpm run build"
     },
     "devDependencies": {
         "@relmify/jest-fp-ts": "2.0.2",

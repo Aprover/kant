@@ -1,14 +1,7 @@
 import type { AstNode, AstNodeDescription, LangiumDocument, PrecomputedScopes } from "langium"
 import { DefaultScopeComputation, MultiMap, streamAllContents } from "langium"
-import type {
-    Communication,
-    FunctionDef,
-    Knowledge,
-    KnowledgeDefBuiltin,
-    KnowledgeDefCustom,
-    Principal
-} from "./generated/ast"
-import { isCommunication, isFunctionDef, isKnowledgeBase, isPrincipal } from "./generated/ast"
+import type { FunctionDef, Knowledge, KnowledgeDefBuiltin, KnowledgeDefCustom, Principal } from "./generated/ast"
+import { isFunctionDef, isPrincipal } from "./generated/ast"
 
 export class KantScopeComputation extends DefaultScopeComputation {
     override computeExports(document: LangiumDocument): Promise<AstNodeDescription[]> {
@@ -27,12 +20,12 @@ export class KantScopeComputation extends DefaultScopeComputation {
         const scopes = new MultiMap<AstNode, AstNodeDescription>()
         // Here we navigate the full AST - local scopes shall be available in the whole document
         for (const node of streamAllContents(rootNode)) {
-            if (isFunctionDef(node) || isPrincipal(node) || isCommunication(node)) {
+            if (isFunctionDef(node) || isPrincipal(node)) {
                 const names = getLocalScopeNamesFrom(node)
                 names.forEach(name => scopes.add(rootNode, this.descriptions.createDescription(node, name, document)))
             }
 
-            if (isPrincipal(node)) {
+            /*if (isPrincipal(node)) {
                 const knowledge = node.knowledge
                 if (knowledge !== undefined) {
                     const names = getKnowledgeNamesFrom(knowledge)
@@ -40,25 +33,23 @@ export class KantScopeComputation extends DefaultScopeComputation {
                         scopes.add(node, this.descriptions.createDescription(knowledge, name, document))
                     )
                 }
-            }
+            }*/
 
-            if (isKnowledgeBase(node)) {
+            /*if (isKnowledgeBase(node)) {
                 const names = getKnowledgeNamesFrom(node.knowledge)
                 names.forEach(name => scopes.add(rootNode, this.descriptions.createDescription(node, name, document)))
-            }
+            }*/
         }
         return Promise.resolve(scopes)
     }
 }
 
-const getLocalScopeNamesFrom = (node: FunctionDef | Principal | Communication): string[] => {
+const getLocalScopeNamesFrom = (node: FunctionDef | Principal): string[] => {
     switch (node.$type) {
         case `FunctionDef`:
             return [node.name]
         case `Principal`:
-            return node.name
-        case `Communication`:
-            return node.from.concat(node.to)
+            return [node.name]
     }
 }
 

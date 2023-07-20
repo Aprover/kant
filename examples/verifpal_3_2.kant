@@ -1,14 +1,18 @@
-principal Alice, Bob know const a
+principal Alice, Bob 
 
-principal Alice know {	
+Alice, Bob know { 
+    const a
+}
+
+Alice know {	
 	fresh b,
 	ha = HASH(a),
 	hb = HASH(b)
 }
 
-Alice -> Bob: { ha, hb }
+Alice -> Bob: [ ha, hb ]
 
-principal Bob know {
+Bob know {
 	bha = HASH(a)
 }
 
