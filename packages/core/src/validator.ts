@@ -3,6 +3,7 @@ import type { Protocol } from "./generated/ast"
 import { type KantAstType } from "./generated/ast"
 import type { KantServices } from "./module"
 import { arrayNotationList } from "./validation/functions/array-notation-list"
+
 import { consecutiveCommunications } from "./validation/functions/consecutive-communication"
 import { debug } from "./validation/functions/debug"
 import { functionsAllCaps } from "./validation/functions/functions-all-caps"
@@ -10,7 +11,7 @@ import { inversionFunctionWithWrongNumberOfParameters } from "./validation/funct
 import { invertedOneWay } from "./validation/functions/inverted-one-way"
 import { knowledgeDeclarationBeforeUsage } from "./validation/functions/knowledge-declaration-before-usage"
 import { knowledgeInSharedDef } from "./validation/functions/knowledge-in-shared-def"
-import { knowledgeKnownToSender } from "./validation/functions/knowledge-known-to-sender"
+
 import { knowledgeShouldStartWithLowelcase } from "./validation/functions/knowledge-should-start-with-lowercase"
 import { minimumPrincipalsPerProtocol } from "./validation/functions/minimum-principal-per-protocol"
 import { nestedKnowledgeAccess } from "./validation/functions/nested-knowledge-access"
@@ -21,7 +22,10 @@ import { noSelfCommunication } from "./validation/functions/no-self-communicatio
 import { noUnusedPrincipals } from "./validation/functions/no-unused-principals"
 import { onlyRefInAuthenticationCheck } from "./validation/functions/only-ref-in-authentication-check"
 import { onlyRefInKnowledgeCheck } from "./validation/functions/only-ref-in-knowledge-check"
+import { pkeDecParamsKeys } from "./validation/functions/pke-dec-params-keys"
+import { pkeEncParamsKeys } from "./validation/functions/pke-enc-params-keys"
 import { principalShoudlStartWithCapitalLetter } from "./validation/functions/principal-should-start-with-capital-letter"
+import { pubGenParams } from "./validation/functions/pub-gen-params"
 import { referenceSpreadingFunctionParams } from "./validation/functions/reference-spreading-function-params"
 import { uniqueCommunicationNames } from "./validation/functions/unique-communication-names"
 import { uniqueFunctionNames } from "./validation/functions/unique-function-names"
@@ -29,6 +33,11 @@ import { uniqueKnowledgeNames } from "./validation/functions/unique-knowledge-na
 import { uniquePrincipalNames } from "./validation/functions/unique-principal-names"
 import { uniqueScenarioNames } from "./validation/functions/unique-scenario-names"
 import { variadicParameterNotLast } from "./validation/functions/variadic-parameter-not-last"
+import { symmetricEncryption } from "./validation/functions/symmetric-encryption"
+import { encParams } from "./validation/functions/enc-params"
+import { decParams } from "./validation/functions/dec-params"
+import { checkKnowledgeKnownToSender } from "./validation/functions/knowledge-known-to-sender"
+import { asymmetricEncryptionValidation } from "./validation/functions/asymmetric-encryption"
 
 /**
  * Register custom validation checks.
@@ -63,7 +72,15 @@ export function registerValidationChecks(services: KantServices): void {
             KantValidator.nestedKnowledgeAccess,
             KantValidator.knowledgeDeclarationBeforeUsage,
             KantValidator.inversionFunctionWithWrongNumberOfParameters,
-            KantValidator.variadicParameterNotLast
+            KantValidator.variadicParameterNotLast,
+            KantValidator.referenceSpreadingFunctionParams,
+            KantValidator.pubGenParams,
+            KantValidator.asymmetricEncryption,
+            KantValidator.pkeEncParamsKeys,
+            KantValidator.pkeDecParamsKeys,
+            KantValidator.symmetricEncryption,
+            KantValidator.encParams,
+            KantValidator.decParams
         ]
     }
     registry.register(checks, validator)
@@ -79,9 +96,6 @@ export const KantValidator = {
     uniqueKnowledgeNames: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
         uniqueKnowledgeNames.uniqueKnowledgeNames(protocol, accept)
     },
-    /* communicationPayloadKnownToSender: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
-        communicationPayloadKnownToSender.communicationKnownToSender(protocol, accept)
-    }, */
     uniquePrincipalNames: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
         uniquePrincipalNames.uniquePrincipalNames(protocol, accept)
     },
@@ -128,7 +142,7 @@ export const KantValidator = {
         functionsAllCaps.functionsAllCaps(protocol, accept)
     },
     knowledgeKnownToSender: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
-        knowledgeKnownToSender.knowledgeKnownToSender(protocol, accept)
+        checkKnowledgeKnownToSender.checkKnowledgeKnownToSender(protocol, accept)
     },
     knowledgeInSharedDef: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
         knowledgeInSharedDef.knowledgeInSharedDef(protocol, accept)
@@ -159,6 +173,27 @@ export const KantValidator = {
     },
     variadicParameterNotLast: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
         variadicParameterNotLast.variadicParameterNotLast(protocol, accept)
+    },
+    pubGenParams: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
+        pubGenParams.pubGenParams(protocol, accept)
+    },
+    asymmetricEncryption: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
+        asymmetricEncryptionValidation.asymmetricEncryptionValidation(protocol, accept)
+    },
+    pkeEncParamsKeys: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
+        pkeEncParamsKeys.pkeEncParamsKeys(protocol, accept)
+    },
+    pkeDecParamsKeys: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
+        pkeDecParamsKeys.pkeDecParamsKeys(protocol, accept)
+    },
+    symmetricEncryption: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
+        symmetricEncryption.symmetricEncryption(protocol, accept)
+    },
+    encParams: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
+        encParams.encParams(protocol, accept)
+    },
+    decParams: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
+        decParams.decParams(protocol, accept)
     }
 }
 

@@ -1,0 +1,26 @@
+principal Alice, Bob
+shared knowledge fresh { g, p } // g is the generator, p is a prime
+
+Bob know {
+	const priv_key_b,  // priv_key_b is the private key of the Server
+	pub_key_b = PUB_GEN(priv_key_b)  // pub_key_b is the public key of Bob, generated using g and p
+}
+
+Alice know {
+	const priv_key_a,  // priv_key_a is the private key of the Client
+	pub_key_a = PUB_GEN(priv_key_a)  // pub_key_a is the public key of Alice, generated using g and p
+}
+
+Alice -> Bob : pub_key_a // Alice communicates its public key to Bob
+
+Bob -> Alice : pub_key_b // Bob communicates its public key to Alice
+
+Alice know {
+	shared_secret_a = DF(pub_key_b, priv_key_a) // Alice computes the shared secret as pub_key_b^priv_key_a mod p
+}
+
+Bob know {
+	shared_secret_b = DF(pub_key_a, priv_key_b) // Bob computes the shared secret as pub_key_a^priv_key_b mod p
+}
+
+check shared_secret_a, shared_secret_b should be equal

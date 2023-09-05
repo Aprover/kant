@@ -1,3 +1,4 @@
+// incorrect/incomplete way to express needham-schroeder protocol in kant
 principal Alice, Bob
 
 Alice know {
