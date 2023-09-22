@@ -1,21 +1,41 @@
-// old launcher code, need to readapt it
+const fs = require(`fs`)
+const path = require(`path`)
+/*
+async function setup() {
+    const vsixPath = `packages/extension/kant-extension-0.1.0.vsix`
+    exec(`code --install-extension ${vsixPath} --force`, (error: unknown, stdout: string) => {
+        if (error) {
+            console.error(`exec error: ${error}`)
+            return
+        }
+        console.log(`stdout: ${stdout}`)
+    })
+}
+const folderPath = `test-cases` // Replace this with the actual path to your folder
+async function TxtToKant() {
+    fs.readdir(folderPath, (err: any, files: any[]) => {
+        if (err) {
+            console.error(`Error reading directory:`, err)
+            return
+        }
 
-import { exec } from "child_process"
-import { readdirSync, statSync } from "fs"
-import { join } from "path"
+        files.forEach((file: string) => {
+            if (file.endsWith(`.kant.txt`)) {
+                const newName = file.slice(0, -4) // Removes the last 4 characters (i.e., .txt)
+                const oldPath = path.join(folderPath, file)
+                const newPath = path.join(folderPath, newName)
 
-const vsixPath = `packages/extension/kant-extension-0.1.0.vsix`
+                fs.rename(oldPath, newPath, (err: any) => {
+                    if (err) {
+                        console.error(`Error renaming file:`, err)
+                    }
+                })
+            }
+        })
+    })
+}
 
-exec(`code --install-extension ${vsixPath} --force`, (error: unknown, stdout: string) => {
-    if (error) {
-        console.error(`exec error: ${error}`)
-        return
-    }
-    console.log(`stdout: ${stdout}`)
-    // console.error(`stderr: ${stderr}`);
-})
-
-function executeCommandOnFiles(directory: string) {
+async function executeCommandOnFiles(directory: string) {
     const files = readdirSync(directory)
     let counter = 1
 
@@ -29,23 +49,18 @@ function executeCommandOnFiles(directory: string) {
             exec(
                 `npm run cli check packages/core/src/validation/test/test-cases/${file}`,
                 (error: unknown, stdout: string, stderr: string) => {
-                    //console.log(stdout)
-                    //console.log(stderr)
                     if (error) {
-                        //console.log(error)
-                        if (stderr.includes(`Knowledge name "c" already used.`)) {
+                        if (stderr) {
                             console.log(
                                 `\x1b[32m%s\x1b[0m`,
                                 `[${counter}] Test for ${file}: SUCCESSFUL. The output includes the desired error.`
                             )
                             counter++
-                        } else {
-                            console.log(`\x1b[31m%s\x1b[0m`, `Test for ${file}: FAILED.\n${error}`)
                         }
                         return
-                    }
-                    if (stdout.includes(`checked successfully!`)) {
-                        console.log(`\x1b[31m%s\x1b[0m`, `Test for ${file}: FAILED.\n${error}`)
+                    } else {
+                        console.log(`\x1b[31m%s\x1b[0m`, `[${counter}]Test for ${file}: FAILED.\n${error}`)
+                        counter++
                         return
                     }
                 }
@@ -54,31 +69,40 @@ function executeCommandOnFiles(directory: string) {
     }
 }
 
-const targetDirectory = `packages/core/src/validation/test/test-cases`
-executeCommandOnFiles(targetDirectory)
-
-/*
-
-const folderPath = 'packages/core/src/validation/test/test-cases';
-
-
-const files = fs.readdirSync(folderPath);
-console.log(`Nomi dei file nella cartella ${folderPath}:`);
-console.log(files);
-
-files.forEach(file => {
-  exec(`npm run cli check packages/core/src/validation/test/test-cases/${file}`, (error: unknown, stdout: string, stderr: string) => {
-    if (error) {
-      if (stderr.includes("Duplicate principal name A in same declaration")) {
-        console.log("\x1b[32m%s\x1b[0m", `Test for ${file}: SUCCESSFUL. The output includes the desired error.`)
-      }
-      return;
-    }
-    if (stdout.includes("checked successfully!")) {
-      console.log("\x1b[31m%s\x1b[0m", `Test for ${file}: FAILED.\n${error}`);
-      return;
-    }
-    // console.log(stdout)
-  })
-});
 */
+const folderPath = `test-cases` // Replace this with the actual path to your folder
+async function KantToTxt() {
+    fs.readdir(folderPath, (err: any, files: any[]) => {
+        if (err) {
+            console.error(`Error reading directory:`, err)
+            return
+        }
+
+        files.forEach((filename: string) => {
+            const filePath = path.join(folderPath, filename)
+
+            if (!filename.endsWith(`.txt`)) {
+                // Skip files that already have the .txt extension
+                const newFilename = `${filename}.txt`
+
+                fs.rename(filePath, path.join(folderPath, newFilename), (err: any) => {
+                    if (err) {
+                        console.error(`Error renaming ${filename}:`, err)
+                    } else {
+                        console.log(`Renamed ${filename} to ${newFilename}`)
+                    }
+                })
+            }
+        })
+    })
+}
+
+async function executeSequentially() {
+    //await setup()
+    //await TxtToKant()
+    //const targetDirectory = `test-cases`
+    //await executeCommandOnFiles(targetDirectory)
+    await KantToTxt()
+}
+
+executeSequentially()

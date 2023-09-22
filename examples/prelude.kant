@@ -35,3 +35,6 @@ property SIGNVERIF invert SIGN
 
 function CONCAT(...values) -> [ value ]
 function forall v : SPLIT(value=CONCAT(...{ values=v })) -> [ v ]
+
+// pseudo-random function for master secret computation in ssl
+function PRF(secret, label, seed) -> [ prf ] one way

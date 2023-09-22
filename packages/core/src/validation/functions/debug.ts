@@ -1,11 +1,21 @@
-import { streamAllContents, type MaybePromise, type ValidationAcceptor } from "langium"
+import { type MaybePromise, type ValidationAcceptor } from "langium"
 import { type Protocol } from "../../generated/ast"
 
 export const debug = {
     debug: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
-        streamAllContents(protocol).forEach(node => {
+        /* streamAllContents(protocol).forEach(node => {
             accept(`info`, `${node.$type}`, { node: protocol })
-        })
+        }) */
+        accept(`info`, `${protocol.$document?.uri.toString()}`, { node: protocol })
+        accept(`info`, `${protocol.$document?.uri.toString().includes(`prelude`)}`, { node: protocol })
+        accept(
+            `info`,
+            `Esito di del confronto ||: ${
+                protocol.$document?.uri.toString() !== `builtin:/prelude.kant` &&
+                !protocol.$document?.uri.toString().includes(`prelude`)
+            }`,
+            { node: protocol }
+        )
         /* streamAllContents(protocol)
             .filter(isKnowledgeFromFunctionArgs)
             .forEach(k => {

@@ -1,0 +1,7 @@
+principal Alice, Bob
+
+Alice know {
+    fresh a,
+    const b,
+    pub_key = PUB_GEN(CONCAT(a, b))
+}

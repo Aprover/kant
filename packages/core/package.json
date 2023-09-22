@@ -23,7 +23,11 @@
     },
     "dependencies": {
         "langium": "1.0.1",
-        "vscode-uri": "3.0.7",
-        "vscode-languageserver": "8.0.2"
+        "vscode-languageserver": "8.0.2",
+        "vscode-uri": "3.0.7"
+    },
+    "devDependencies": {
+        "@relmify/jest-fp-ts": "^2.1.1",
+        "@types/node": "^20.6.3"
     }
 }

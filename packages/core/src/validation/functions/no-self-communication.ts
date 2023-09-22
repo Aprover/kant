@@ -9,7 +9,7 @@ export const noSelfCommunication = {
                 const sender = c.from.ref?.name
                 c.to.forEach(p => {
                     if (sender === p.ref?.name) {
-                        accept(`error`, `Principal ${c.from.ref?.name} cannot comunicate with himself.`, { node: c })
+                        accept(`error`, `Principal ${c.from.ref?.name} cannot communicate with himself.`, { node: c })
                     }
                 })
             })

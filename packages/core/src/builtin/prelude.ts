@@ -9,12 +9,7 @@ export const prelude = {
     * of the protocol, therefore its definitions can be used directly without
     * prior definition in protocol definitions.
     */
-   function CONCAT(...values) -> [ value ]
-   function forall v : SPLIT(value=CONCAT(...{ values=v })) -> [ v ]
-   
-   
-   
-   function HASH(value) ->[ hash ] one way
+   function HASH(value) -> [ hash ] one way
    function MAC(k, value) -> [ mac ] one way
    function HKDF(salt, ikm, info) -> [ k1, k2, k3, k4, k5 ] one way
    function PW_HASH(value) -> [ pw_hash ] one way
@@ -39,5 +34,11 @@ export const prelude = {
    
    function SIGN(message) with k -> [ signed ]
    function forall m, k : SIGNVERIF(sign=SIGN(m) with k) with { k, message=m } -> [ m ]
-   property SIGNVERIF invert SIGN`
+   property SIGNVERIF invert SIGN
+   
+   function CONCAT(...values) -> [ value ]
+   function forall v : SPLIT(value=CONCAT(...{ values=v })) -> [ v ]
+   
+   // pseudo-random function for master secret computation in ssl
+   function PRF(secret, label, seed) -> [ prf ] one way`
 }

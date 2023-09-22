@@ -1,5 +1,5 @@
 import type { MaybePromise, ValidationAcceptor } from "langium"
-import { findRootNode, streamAllContents } from "langium"
+import { streamAllContents } from "langium"
 import type { Protocol } from "../../generated/ast"
 import {
     isCommunication,
@@ -15,33 +15,36 @@ import {
 
 export const knowledgeDeclarationBeforeUsage = {
     knowledgeDeclarationBeforeUsage: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
-        const knowledge = new Set<string>()
-        streamAllContents(protocol)
-            .filter(isKnowledgeDefBuiltin)
-            .forEach(kdb => {
-                kdb.name.forEach(n => {
-                    knowledge.add(n)
+        if (
+            protocol.$document?.uri.toString() !== `builtin:/prelude.kant` &&
+            !protocol.$document?.uri.toString().includes(`prelude`)
+        ) {
+            const knowledge = new Set<string>()
+            streamAllContents(protocol)
+                .filter(isKnowledgeDefBuiltin)
+                .forEach(kdb => {
+                    kdb.name.forEach(n => {
+                        knowledge.add(n)
+                    })
                 })
-            })
-        streamAllContents(protocol)
-            .filter(isKnowledgeDefCustomName)
-            .forEach(cn => {
-                knowledge.add(cn.name)
-            })
-        //accept(`info`, `Knowledge: ${Array.from(knowledge)}`, { node: protocol })
-        streamAllContents(protocol)
-            .filter(isCommunication)
-            .forEach(c => {
-                c.ref.forEach(kr => {
-                    if (!knowledge.has(kr.ref)) {
-                        accept(`error`, `${kr.ref} has not been declared.`, { node: c })
-                    }
+            streamAllContents(protocol)
+                .filter(isKnowledgeDefCustomName)
+                .forEach(cn => {
+                    knowledge.add(cn.name)
                 })
-            })
-        streamAllContents(protocol)
-            .filter(isKnowledgeFromFunctionArgs)
-            .forEach(kff => {
-                if (findRootNode(kff).$document?.uri.toString() !== `builtin:/prelude.kant`) {
+            //accept(`info`, `Knowledge: ${Array.from(knowledge)}`, { node: protocol })
+            streamAllContents(protocol)
+                .filter(isCommunication)
+                .forEach(c => {
+                    c.ref.forEach(kr => {
+                        if (!knowledge.has(kr.ref)) {
+                            accept(`error`, `${kr.ref} has not been declared.`, { node: c })
+                        }
+                    })
+                })
+            streamAllContents(protocol)
+                .filter(isKnowledgeFromFunctionArgs)
+                .forEach(kff => {
                     if (isKnowledgeSpreading(kff)) {
                         if (isKnowledgeRef(kff.ref)) {
                             if (!knowledge.has(kff.ref.ref)) {
@@ -84,7 +87,7 @@ export const knowledgeDeclarationBeforeUsage = {
                             })
                         })
                     }
-                }
-            })
+                })
+        }
     }
 }

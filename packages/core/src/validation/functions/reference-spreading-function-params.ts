@@ -26,11 +26,17 @@ export const referenceSpreadingFunctionParams = {
                     }
                 }
             })
+
+        //accept(`info`, `sets or lists: ${Array.from(setsOrLists)}`, { node: protocol })
+
         // andiamo nei parametri delle invocazioni di funzione e in particolare cerchiamo gli spreading di riferimenti
         streamAllContents(protocol)
             .filter(isKnowledgeFromFunctionArgs)
             .forEach(kff => {
-                if (findRootNode(kff).$document?.uri.toString() !== `builtin:/prelude.kant`) {
+                if (
+                    findRootNode(kff).$document?.uri.toString() !== `builtin:/prelude.kant` &&
+                    !findRootNode(kff).$document?.uri.toString().includes(`prelude`)
+                ) {
                     if (isKnowledgeSpreading(kff)) {
                         if (isKnowledgeRef(kff.ref)) {
                             if (!setsOrLists.has(kff.ref.ref)) {

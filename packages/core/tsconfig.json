@@ -2,7 +2,10 @@
     "extends": "../../tsconfig.json",
     "compilerOptions": {
         "outDir": "out",
-        "rootDir": "./"
+        "rootDir": "./",
+        "target": "ES2020",
+        "module": "CommonJS",
+        "types": ["node"]
     },
     "include": ["./package.json", "src/**/*.ts", "index.ts", "index.test.ts"],
     "exclude": []

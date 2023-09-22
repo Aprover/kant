@@ -29,7 +29,8 @@ FunctionParam:
 
 FunctionKey:
     elements+=FunctionKeyElement
-	| '{' elements+=FunctionKeyElement (',' elements+=FunctionKeyElement)* '}';
+	| '{' elements+=FunctionKeyElement (',' elements+=FunctionKeyElement)* '}'
+;
 
 FunctionKeyElement:
     name+=ID ('=' type=KnowledgeValue)?

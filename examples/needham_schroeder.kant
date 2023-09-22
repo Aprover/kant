@@ -1,31 +1,33 @@
-// incorrect/incomplete way to express needham-schroeder protocol in kant
+// There is a better written version of this protocol
+
 principal Alice, Bob
 
 Alice know {
-	const a,
-	fresh na,
-	ga = PUB_GEN(a)
+	const a, 
+	fresh na, 
+	ga = PUB_GEN(a) 
 }
 
 Bob know {
-	const b,
+	const b, 
 	fresh nb,
-	gb = PUB_GEN(b)
+	gb = PUB_GEN(b) 
 }
 
-Alice -> Bob: ga
+Alice -> Bob: ga 
 
-Bob -> Alice: gb
+Bob -> Alice: gb 
 
 Alice know {
-	e1 = PKE_ENC(na) with gb
+	e1 = PKE_ENC(na) with gb 
 }
 
-Alice -> Bob: e1
+Alice -> Bob: e1 
 
 Bob know {
-	na_bob = PKE_DEC(e1) with b,
-	e2 = PKE_ENC(CONCAT(na_bob, nb)) with ga
+	na_bob = PKE_DEC(e1) with b, 
+	message_to_send_to_Alice = CONCAT(na_bob, nb), 
+	e2 = PKE_ENC(message_to_send_to_Alice) with ga 
 }
 
 Bob -> Alice: e2
@@ -36,7 +38,8 @@ Alice know {
     splitted = SPLIT(m2),
 	na_bob_alice = splitted[0],
 	nb_alice = splitted[1],
-	e3 = PKE_ENC(gb, splitted[1])
+	nb_alice_pub_key = PUB_GEN(nb_alice),
+	e3 = PKE_ENC(gb) with nb_alice_pub_key
 }
 
 check na, na_bob_alice should be equal
@@ -44,7 +47,7 @@ check na, na_bob_alice should be equal
 Alice -> Bob: e3
 
 Bob know {
-	nb_alice_bob = PKE_DEC(e3) with b
+	nb_alice_bob = PKE_DEC(e3) with nb_alice
 }
 
 check nb, nb_alice_bob should be equal
