@@ -1,0 +1,88 @@
+//A->B:A,na
+//B->S:B,nb,{A,na}kbs
+//S->A:nb,{B,kab,na}kas,{A,kab,nb}kbs
+//A->B:{A,kab,nb}kbs,{nb}kab
+
+principal Alice,Bob,Server
+// non key sensitive
+// nessun controllo se la conoscenza è usabile
+// si possono usare chiavi non dichiarate
+// si possono applicare funzioni inverse con chiavi diverse
+// si possono dichiarare nomi senza che il valore venga poi assegnato
+// si possono dichiarare liste vuote
+// il contenuto delle funzioni non viene controllato
+Alice know{
+
+    const priv_a,
+    pub_a=PUB_GEN(priv_a)
+}
+
+Server know{
+    const priv_s,
+    pub_s=PUB_GEN(priv_s),
+    const kas,
+    const kbs
+}
+
+Bob know{
+    const priv_b,
+    pub_b=PUB_GEN(priv_b)
+} 
+
+Alice->Server:pub_a
+Bob->Server:pub_b
+
+Server know{
+    eas=PKE_ENC(kas) with pub_a,
+    ebs=PKE_ENC(kbs) with pub_b
+}
+
+Server->Alice:eas
+
+Alice know{
+    kas_rec=PKE_DEC(eas) with priv_a
+}
+
+Server->Bob:ebs
+
+Bob know{
+    kbs_rec=PKE_DEC(ebs) with priv_b
+}
+
+Alice know{
+    fresh na,
+    const cert_a,
+    m1=[cert_a,na]
+}
+
+Alice->Bob:m1
+
+Bob know{
+    // diff replace
+    // fresh test_b,
+    const cert_b,
+    fresh nb,
+    enc_a=ENC(m1) with kbs_rec,
+    m2=[cert_b,nb,enc_a]
+}
+
+Bob->Server:m2
+
+Server know{
+    m1_dec=DEC(m2[2]) with kbs,
+    fresh kab,
+    share_kab_Alice=ENC([cert_b,kab,na]) with kas,
+    share_kab_Bob=ENC([cert_a,kab,nb]) with kbs,
+    m3=[nb,share_kab_Alice,share_kab_Bob]
+}
+
+Server->Alice:m3
+
+Alice know{
+    kab_dec_share=DEC(m3[1]) with kas_rec,
+    kab_rec_a=kab_dec_share[1],
+    nonce_enc=ENC(m3[0]) with kab_rec_a,
+    m4=[m3[2],nonce_enc]
+}
+
+Alice->Bob:m4
