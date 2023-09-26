@@ -36,6 +36,10 @@ import { uniqueKnowledgeNames } from "./validation/functions/unique-knowledge-na
 import { uniquePrincipalNames } from "./validation/functions/unique-principal-names"
 import { uniqueScenarioNames } from "./validation/functions/unique-scenario-names"
 import { variadicParameterNotLast } from "./validation/functions/variadic-parameter-not-last"
+import { emptyList } from "./validation/functions/empty-lists"
+import { identifierWithNoValue } from "./validation/functions/identifier-with-no-value"
+import { keysAreDeclared } from "./validation/functions/keys-are-declared"
+import { emptySet } from "./validation/functions/empty-set"
 
 
 /**
@@ -79,7 +83,11 @@ export function registerValidationChecks(services: KantServices): void {
             KantValidator.pkeDecParamsKeys,
             KantValidator.symmetricEncryption,
             KantValidator.encParams,
-            KantValidator.decParams
+            KantValidator.decParams,
+            KantValidator.emptyList,
+            KantValidator.identifierWithNoValue,
+            KantValidator.keysAreDeclared,
+            KantValidator.emtpySet
         ]
     }
     registry.register(checks, validator)
@@ -193,6 +201,18 @@ export const KantValidator = {
     },
     decParams: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
         decParams.decParams(protocol, accept)
+    },
+    emptyList: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
+        emptyList.emptyList(protocol, accept)
+    },
+    identifierWithNoValue: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
+        identifierWithNoValue.identifierWithNoValue(protocol, accept)
+    },
+    keysAreDeclared: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
+        keysAreDeclared.keysAreDeclared(protocol, accept)
+    },
+    emtpySet: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
+        emptySet.emptySet(protocol, accept)
     }
 }
 

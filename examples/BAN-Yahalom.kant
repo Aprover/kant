@@ -66,7 +66,7 @@ Bob know{
     m2=[cert_b,nb,enc_a]
 }
 
-Bob->Server:m2
+Bob->Server: [cert_b,nb,enc_a]
 
 Server know{
     m1_dec=DEC(m2[2]) with kbs,
@@ -76,13 +76,14 @@ Server know{
     m3=[nb,share_kab_Alice,share_kab_Bob]
 }
 
-Server->Alice:m3
+// Server->Alice:m3
+Server -> Alice: [nb,share_kab_Alice,share_kab_Bob]
 
 Alice know{
-    kab_dec_share=DEC(m3[1]) with kas_rec,
-    kab_rec_a=kab_dec_share[1],
-    nonce_enc=ENC(m3[0]) with kab_rec_a,
-    m4=[m3[2],nonce_enc]
+    kab_dec_share=DEC(share_kab_Alice) with kas_rec,
+    kab_rec_a=kab_dec_share,
+    nonce_enc=ENC(nb) with kab_rec_a,
+    m4=[share_kab_Bob,nonce_enc]
 }
 
 Alice->Bob:m4
