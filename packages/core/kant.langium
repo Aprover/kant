@@ -83,7 +83,7 @@ KnowledgeDef:
 ;
 
 KnowledgeDefBuiltin:
-    type=('const' | 'fresh') (name+=ID | '{' name+=ID (',' name+=ID)* '}')
+    type=('const' | 'fresh' | 'state' ) (name+=ID | '{' name+=ID (',' name+=ID)* '}')
 ;
 
 KnowledgeDefCustom:
