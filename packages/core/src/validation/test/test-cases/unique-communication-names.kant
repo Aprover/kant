@@ -1,0 +1,12 @@
+principal Alice, Bob
+
+Alice know {
+    fresh a
+}
+
+Bob know {
+    const b
+}
+
+(mex1) Alice -> Bob : a
+(mex1) Bob -> Alice : b

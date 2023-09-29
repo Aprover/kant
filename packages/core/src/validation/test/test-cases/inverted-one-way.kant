@@ -1,0 +1,3 @@
+function FX(param) -> [ res ] one way
+function INVERTER(another_param) -> [ val ] 
+property INVERTER invert FX

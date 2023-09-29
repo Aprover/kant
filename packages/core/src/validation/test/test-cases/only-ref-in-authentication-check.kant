@@ -1,0 +1,11 @@
+principal Alice, Bob 
+
+Alice know {
+    fresh a
+}
+
+check Alice should authenticate Bob with a
+check Alice should authenticate Bob with { inside_set }
+check Alice should authenticate Bob with [ inside_list ]
+check Alice should authenticate Bob with HASH(a)
+

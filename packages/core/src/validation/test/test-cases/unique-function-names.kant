@@ -1,0 +1,2 @@
+function DUPLICATE(param) -> [ v ]
+function DUPLICATE(param, anotherparam) -> [ v1, v2 ]

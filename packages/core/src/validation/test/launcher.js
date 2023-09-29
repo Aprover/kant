@@ -1,3 +1,4 @@
+"use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -34,126 +35,47 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var fs = require("fs");
-var path = require("path");
-/*
-async function setup() {
-    const vsixPath = `packages/extension/kant-extension-0.1.0.vsix`
-    exec(`code --install-extension ${vsixPath} --force`, (error: unknown, stdout: string) => {
-        if (error) {
-            console.error(`exec error: ${error}`)
-            return
-        }
-        console.log(`stdout: ${stdout}`)
-    })
-}
-const folderPath = `test-cases` // Replace this with the actual path to your folder
-async function TxtToKant() {
-    fs.readdir(folderPath, (err: any, files: any[]) => {
-        if (err) {
-            console.error(`Error reading directory:`, err)
-            return
-        }
-
-        files.forEach((file: string) => {
-            if (file.endsWith(`.kant.txt`)) {
-                const newName = file.slice(0, -4) // Removes the last 4 characters (i.e., .txt)
-                const oldPath = path.join(folderPath, file)
-                const newPath = path.join(folderPath, newName)
-
-                fs.rename(oldPath, newPath, (err: any) => {
-                    if (err) {
-                        console.error(`Error renaming file:`, err)
-                    }
-                })
-            }
-        })
-    })
-}
-
-async function executeCommandOnFiles(directory: string) {
-    const files = readdirSync(directory)
-    let counter = 1
-
-    for (const file of files) {
-        const filePath = join(directory, file)
-        const fileStats = statSync(filePath)
-
-        if (fileStats.isDirectory()) {
-            executeCommandOnFiles(filePath) // Recursively traverse subdirectories
-        } else if (fileStats.isFile()) {
-            exec(
-                `npm run cli check packages/core/src/validation/test/test-cases/${file}`,
-                (error: unknown, stdout: string, stderr: string) => {
-                    if (error) {
-                        if (stderr) {
-                            console.log(
-                                `\x1b[32m%s\x1b[0m`,
-                                `[${counter}] Test for ${file}: SUCCESSFUL. The output includes the desired error.`
-                            )
-                            counter++
-                        }
-                        return
-                    } else {
-                        console.log(`\x1b[31m%s\x1b[0m`, `[${counter}]Test for ${file}: FAILED.\n${error}`)
-                        counter++
-                        return
-                    }
-                }
-            )
-        }
-    }
-}
-
-*/
-var folderPath = "test-cases"; // Replace this with the actual path to your folder
-function KantToTxt() {
+exports.__esModule = true;
+var child_process_1 = require("child_process");
+var fs_1 = require("fs");
+var path_1 = require("path");
+function executeCommandOnFiles(directory) {
     return __awaiter(this, void 0, void 0, function () {
+        var files, counter, _loop_1, _i, files_1, file;
         return __generator(this, function (_a) {
-            fs.readdir(folderPath, function (err, files) {
-                if (err) {
-                    console.error("Error reading directory:", err);
-                    return;
+            files = (0, fs_1.readdirSync)(directory);
+            counter = 1;
+            _loop_1 = function (file) {
+                var filePath = (0, path_1.join)(directory, file);
+                var fileStats = (0, fs_1.statSync)(filePath);
+                if (fileStats.isDirectory()) {
+                    executeCommandOnFiles(filePath); // Recursively traverse subdirectories
                 }
-                files.forEach(function (filename) {
-                    var filePath = path.join(folderPath, filename);
-                    if (!filename.endsWith(".txt")) {
-                        // Skip files that already have the .txt extension
-                        var newFilename_1 = "".concat(filename, ".txt");
-                        fs.rename(filePath, path.join(folderPath, newFilename_1), function (err) {
-                            if (err) {
-                                console.error("Error renaming ".concat(filename, ":"), err);
+                else if (fileStats.isFile()) {
+                    (0, child_process_1.exec)("npm run cli check packages/core/src/validation/test/test-cases/".concat(file), function (error, stdout, stderr) {
+                        console.log(stdout);
+                        if (error) {
+                            if (stderr) {
+                                console.log("\u001B[32m%s\u001B[0m", "[".concat(counter, "] Test for ").concat(file, ": SUCCESSFUL. The output includes the desired error."));
+                                counter++;
                             }
-                            else {
-                                console.log("Renamed ".concat(filename, " to ").concat(newFilename_1));
-                            }
-                        });
-                    }
-                });
-            });
+                            return;
+                        }
+                        else {
+                            console.log("\u001B[31m%s\u001B[0m", "[".concat(counter, "]Test for ").concat(file, ": FAILED.\n").concat(error));
+                            counter++;
+                            return;
+                        }
+                    });
+                }
+            };
+            for (_i = 0, files_1 = files; _i < files_1.length; _i++) {
+                file = files_1[_i];
+                _loop_1(file);
+            }
             return [2 /*return*/];
         });
     });
 }
-function executeSequentially() {
-    return __awaiter(this, void 0, void 0, function () {
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0: 
-                //await setup()
-                //await TxtToKant()
-                //const targetDirectory = `test-cases`
-                //await executeCommandOnFiles(targetDirectory)
-                return [4 /*yield*/, KantToTxt()];
-                case 1:
-                    //await setup()
-                    //await TxtToKant()
-                    //const targetDirectory = `test-cases`
-                    //await executeCommandOnFiles(targetDirectory)
-                    _a.sent();
-                    return [2 /*return*/];
-            }
-        });
-    });
-}
-executeSequentially();
+var folderPath = "test-cases";
+executeCommandOnFiles(folderPath);

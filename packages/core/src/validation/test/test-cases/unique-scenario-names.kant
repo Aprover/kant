@@ -1,0 +1,16 @@
+principal Alice, Bob
+
+Alice know {
+    fresh a,
+    fresh c
+}
+
+Bob know {
+    fresh b
+}
+
+alternatively or "scenario" {
+    Alice -> Bob : a
+} or "scenario" {
+    Alice -> Bob : c
+}

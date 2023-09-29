@@ -1,0 +1,7 @@
+principal Alice, Bob, Eve
+
+Alice know {
+    fresh a
+}
+
+Alice -> Bob, Eve, Bob, Eve : a

@@ -1,0 +1,6 @@
+shared knowledge [v1, v2]
+shared knowledge { illegal }
+shared knowledge gen "COUNTER"
+shared knowledge fresh param
+shared knowledge const constant
+shared knowledge let = HASH(param)

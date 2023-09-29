@@ -1,0 +1,10 @@
+principal Alice, Bob
+
+Alice know {
+    fresh a,
+    res3 = MAC(...a)
+}
+
+Bob know {
+    fresh b
+}

@@ -1,0 +1,11 @@
+principal Alice, Bob
+
+Alice know {
+    fresh a
+}
+
+Bob know {
+    const b
+}
+
+check a, b should be equal

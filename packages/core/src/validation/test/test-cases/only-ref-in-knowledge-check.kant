@@ -1,0 +1,10 @@
+principal Alice 
+
+Alice know {
+    fresh a
+}
+
+check Alice should know a
+check Alice should know { a, b, c }
+check Alice should know [ inside_list ]
+check Alice should know HASH(a)

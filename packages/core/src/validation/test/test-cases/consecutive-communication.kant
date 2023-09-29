@@ -1,0 +1,8 @@
+principal Alice, Bob
+
+Alice know {
+    const a
+}
+
+Alice -> Bob : a
+Alice -> Bob : a

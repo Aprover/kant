@@ -1,0 +1,3 @@
+function FX(param) -> [ res ]
+function INV -> [ result ]
+property INV invert FX

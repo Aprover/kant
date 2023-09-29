@@ -1,0 +1,9 @@
+principal Alice, Bob
+
+Alice -> Bob : unknown
+
+Alice know {
+    fresh a
+}
+
+Alice -> Bob : a

@@ -1,0 +1,6 @@
+principal Alice
+
+Alice know {
+    const c,
+    fresh c
+}

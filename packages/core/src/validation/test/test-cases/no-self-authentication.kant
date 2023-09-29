@@ -1,0 +1,7 @@
+principal Alice
+
+Alice know {
+    fresh a
+}
+
+check Alice should authenticate Alice with a

@@ -1,0 +1,7 @@
+principal Alice
+
+Alice know {
+    fresh ALLCAPS,
+    const CONSTALLCAPS,
+    REFALLCAPS = [ALLCAPS, CONSTALLCAPS]
+}

@@ -1,0 +1,12 @@
+principal Alice, Bob
+
+Alice know {
+    list = [value1, value2, value3],
+    correct = list[0],
+    fresh a,
+    incorrect = a[1]
+}
+
+Bob know {
+    fresh b
+}

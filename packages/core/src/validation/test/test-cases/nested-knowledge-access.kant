@@ -1,0 +1,11 @@
+principal Alice
+
+Alice know {
+    fresh a,
+    ref = a.access,
+    set = {
+        fresh f1,
+        const c2
+    },
+    ref2 = set.f1
+}

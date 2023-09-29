@@ -1,0 +1,9 @@
+principal Alice, Bob
+
+Alice know {
+    fresh a,
+    fx_res = HASH(non_declared)
+}
+
+Alice -> Bob : another_non_declared
+
