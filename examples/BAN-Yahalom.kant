@@ -4,15 +4,9 @@
 //A->B:{A,kab,nb}kbs,{nb}kab
 
 principal Alice,Bob,Server
-// non key sensitive
-// nessun controllo se la conoscenza è usabile
-// si possono usare chiavi non dichiarate
-// si possono applicare funzioni inverse con chiavi diverse
-// si possono dichiarare nomi senza che il valore venga poi assegnato
-// si possono dichiarare liste vuote
-// il contenuto delle funzioni non viene controllato
-Alice know{
 
+Alice know{
+    fresh valore,
     const priv_a,
     pub_a=PUB_GEN(priv_a)
 }
@@ -29,7 +23,7 @@ Bob know{
     pub_b=PUB_GEN(priv_b)
 } 
 
-Alice->Server:pub_a
+Alice->Server: pub_a
 Bob->Server:pub_b
 
 Server know{
@@ -52,38 +46,50 @@ Bob know{
 Alice know{
     fresh na,
     const cert_a,
-    m1=[cert_a,na]
+    m1=CONCAT(cert_a,na)
 }
 
-Alice->Bob:m1
+// principals = [[Alice, Alice], [Alice, Alice], [[Alice, Bob]]]
+// global = [[na, m1[1]], [cert_a, m1[0]], [m1]]
+// m1 -> [1, 0]
+// global[1] -> [cert_a, m1[0]]
+
+Alice -> Bob: m1
 
 Bob know{
     // diff replace
     // fresh test_b,
     const cert_b,
     fresh nb,
+    fresh x,
     enc_a=ENC(m1) with kbs_rec,
-    m2=[cert_b,nb,enc_a]
+    m2=CONCAT(cert_b,nb,enc_a)
 }
 
-Bob->Server: [cert_b,nb,enc_a]
+Bob->Server: m2
 
 Server know{
-    m1_dec=DEC(m2[2]) with kbs,
+    m2_rec = SPLIT(m2),
+    param = m2_rec[2],
+    m1_dec=DEC(param) with kbs,
     fresh kab,
-    share_kab_Alice=ENC([cert_b,kab,na]) with kas,
-    share_kab_Bob=ENC([cert_a,kab,nb]) with kbs,
-    m3=[nb,share_kab_Alice,share_kab_Bob]
+    m1_split = SPLIT(m1_dec),
+    share_kab_Alice=ENC([m2_rec[0],kab,m1_split[1]]) with kas,
+    share_kab_Bob=ENC([m1_split[0],kab,m2_rec[1]]) with kbs,
+    m3=[m2_rec[1],share_kab_Alice,share_kab_Bob]
 }
 
 // Server->Alice:m3
-Server -> Alice: [nb,share_kab_Alice,share_kab_Bob]
+Server -> Alice: m3
 
 Alice know{
-    kab_dec_share=DEC(share_kab_Alice) with kas_rec,
+    m3_split = SPLIT(m3),
+    share_kab_Alice_rec = m3_split[1],
+    kab_dec_share=DEC(share_kab_Alice_rec) with kas_rec,
     kab_rec_a=kab_dec_share,
-    nonce_enc=ENC(nb) with kab_rec_a,
-    m4=[share_kab_Bob,nonce_enc]
+    nonce_enc=ENC(m3_split[0]) with kab_rec_a,
+    m4=[m3_split[2],nonce_enc],
+    fresh content,
+    signed = SIGN(content),
+    SIGNVERIF(signed)
 }
-
-Alice->Bob:m4

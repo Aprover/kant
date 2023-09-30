@@ -1,6 +1,7 @@
 //A->B:{Kab}kb
 //B->A:{nb}Kab
 //A->B:{Ca,{nb}ka-1}kab
+
 principal Alice, Bob
 
 Alice know {
@@ -49,3 +50,5 @@ Bob know{
     split_cert_sign=SPLIT(dec_cert_sign),
     SIGNVERIF(split_cert_sign[1]) with {pub_key_a,message=nb}
 }
+
+check nb, dec_nb should be equal
