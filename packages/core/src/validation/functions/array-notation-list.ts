@@ -10,44 +10,56 @@ import {
     isListAccess
 } from "../../generated/ast"
 
-export const arrayNotationList = {
-    arrayNotationList: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
-        const lists = new Set<string>()
-        // le list possono essere: dichiarazioni esplicite oppure possono essere tornate da funzioni che tornano più parametri
-        const fx = new Set<string>() // set of functions that return more than one value
-        fx.add(`HKDF`)
-        fx.add(`SPLIT`)
-        streamAllContents(protocol)
-            .filter(isFunctionDef)
-            .forEach(f => {
-                if (f.return.elements.length > 1) {
-                    fx.add(f.name)
-                }
-            })
-
-        streamAllContents(protocol)
-            .filter(isKnowledgeDefCustom)
-            .forEach(kdc => {
-                if (isKnowledgeDefCustomName(kdc.left)) {
-                    if (isKnowledgeList(kdc.value)) {
-                        lists.add(kdc.left.name)
-                    }
-                    if (isKnowledgeFromFunction(kdc.value)) {
-                        const invokedFunction = kdc.value.invoked.ref?.name
-                        if (invokedFunction !== undefined) {
-                            if (fx.has(invokedFunction)) {
-                                lists.add(kdc.left.name)
-                            }
-                        }
-                    }
-                }
-            })
-        //accept(`info`, `liste: ${Array.from(lists)}`, { node: protocol })
+export const indexAccessPointsToList = {
+    indexAccessPointsToList: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
         streamAllContents(protocol)
             .filter(isListAccess)
             .forEach(la => {
-                if (!lists.has(la.ref)) {
-                    accept(`error`, `${la.ref} is not a list, it can't be accessed using an index.`, { node: la })
+                let ref = la.ref
+                const fx = new Set<string>()
+                fx.add(`HKDF`)
+                fx.add(`SPLIT`)
+                streamAllContents(protocol)
+                    .filter(isFunctionDef)
+                    .forEach(f => {
+                        if (f.return.elements.length > 1) {
+                            fx.add(f.name)
+                        }
+                    })
+                let found = false
+                streamAllContents(protocol)
+                    .filter(isKnowledgeDefCustom)
+                    .forEach(kdc => {
+                        if (isKnowledgeDefCustomName(kdc.left)) {
+                            if (kdc.left.name === ref) {
+                                found = true
+                                if (isKnowledgeFromFunction(kdc.value)) {
+                                    const invoked = kdc.value.invoked.ref?.name
+                                    if (invoked && !fx.has(invoked)) {
+                                        accept(
+                                            `error`,
+                                            `${la.ref} is not a list, it can't be accessed using an index.`,
+                                            { node: la }
+                                        )
+                                    }
+                                } else {
+                                    if (!isKnowledgeList(kdc.value)) {
+                                        accept(
+                                            `error`,
+                                            `${la.ref} is not a list, it can't be accessed using an index.`,
+                                            { node: la }
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    })
+                if (!found) {
+                    accept(
+                        `error`,
+                        `${la.ref} is not a list or it might not be declared, it can't be accessed using an index.`,
+                        { node: la }
+                    )
                 }
             })
     }

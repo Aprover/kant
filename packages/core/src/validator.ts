@@ -1,26 +1,21 @@
-import type { MaybePromise, ValidationAcceptor, ValidationChecks } from "langium"
-import type { Protocol } from "./generated/ast"
+import { MaybePromise, type ValidationAcceptor, type ValidationChecks } from "langium"
+import { Protocol } from "./generated/ast"
 import { type KantAstType } from "./generated/ast"
 import type { KantServices } from "./module"
-import { noSelfCommunication } from "./validation/functions/no-self-communication"
-import { arrayNotationList } from "./validation/functions/array-notation-list"
-import { asymmetricEncryptionValidation } from "./validation/functions/asymmetric-encryption"
 import { consecutiveCommunications } from "./validation/functions/consecutive-communication"
 import { debug } from "./validation/functions/debug"
-import { decParams } from "./validation/functions/dec-params"
-import { encParams } from "./validation/functions/enc-params"
 import { functionsAllCaps } from "./validation/functions/functions-all-caps"
 import { inversionFunctionWithWrongNumberOfParameters } from "./validation/functions/inversion-function-wrong-parameters"
 import { invertedOneWay } from "./validation/functions/inverted-one-way"
 import { knowledgeDeclarationBeforeUsage } from "./validation/functions/knowledge-declaration-before-usage"
 import { knowledgeInSharedDef } from "./validation/functions/knowledge-in-shared-def"
-import { checkKnowledgeKnownToSender } from "./validation/functions/knowledge-known-to-sender"
 import { knowledgeShouldStartWithLowelcase } from "./validation/functions/knowledge-should-start-with-lowercase"
 import { minimumPrincipalsPerProtocol } from "./validation/functions/minimum-principal-per-protocol"
 import { nestedKnowledgeAccess } from "./validation/functions/nested-knowledge-access"
 import { noDuplicationInCommunicationReceivers } from "./validation/functions/no-duplication-communication-receivers"
 import { noFreshConstEquality } from "./validation/functions/no-fresh-const-equality"
 import { noSelfAuthentication } from "./validation/functions/no-self-authentication"
+import { noSelfCommunication } from "./validation/functions/no-self-communication"
 import { noUnusedPrincipals } from "./validation/functions/no-unused-principals"
 import { onlyRefInAuthenticationCheck } from "./validation/functions/only-ref-in-authentication-check"
 import { onlyRefInKnowledgeCheck } from "./validation/functions/only-ref-in-knowledge-check"
@@ -29,18 +24,29 @@ import { pkeEncParamsKeys } from "./validation/functions/pke-enc-params-keys"
 import { principalShoudlStartWithCapitalLetter } from "./validation/functions/principal-should-start-with-capital-letter"
 import { pubGenParams } from "./validation/functions/pub-gen-params"
 import { referenceSpreadingFunctionParams } from "./validation/functions/reference-spreading-function-params"
-import { symmetricEncryption } from "./validation/functions/symmetric-encryption"
 import { uniqueCommunicationNames } from "./validation/functions/unique-communication-names"
 import { uniqueFunctionNames } from "./validation/functions/unique-function-names"
 import { uniqueKnowledgeNames } from "./validation/functions/unique-knowledge-names"
 import { uniquePrincipalNames } from "./validation/functions/unique-principal-names"
 import { uniqueScenarioNames } from "./validation/functions/unique-scenario-names"
 import { variadicParameterNotLast } from "./validation/functions/variadic-parameter-not-last"
+import { symmetricEncryption } from "./validation/functions/symmetric-encryption"
+import { encParams } from "./validation/functions/enc-params"
+import { decParams } from "./validation/functions/dec-params"
+import { checkKnowledgeKnownToSender } from "./validation/functions/knowledge-known-to-sender"
+import { asymmetricEncryptionValidation } from "./validation/functions/asymmetric-encryption"
 import { emptyList } from "./validation/functions/empty-lists"
 import { identifierWithNoValue } from "./validation/functions/identifier-with-no-value"
 import { keysAreDeclared } from "./validation/functions/keys-are-declared"
 import { emptySet } from "./validation/functions/empty-set"
+import { knowledgeKnownToPrincipal } from "./validation/functions/knowledge-known-to-principal"
+import { test } from "./validation/functions/test"
+import { printBool } from "./validation/functions/print-bool"
+import { KnowledgeClass } from "./KnowledgeClass"
+//import { knowledgeRetrieve } from "./validation/functions/knowledge-retrieve"
 
+// QUI STRUTTURE DATI CONDIVISE DALLE FUNZIONI
+let globalDescription = new KnowledgeClass();
 
 /**
  * Register custom validation checks.
@@ -48,9 +54,10 @@ import { emptySet } from "./validation/functions/empty-set"
 export function registerValidationChecks(services: KantServices): void {
     const registry = services.validation.ValidationRegistry
     const validator = services.validation.KantValidator
+
     const checks: ValidationChecks<KantAstType> = {
         Protocol: [
-            //KantValidator.debug,
+            KantValidator.debug,
             KantValidator.uniqueKnowledgeNames,
             KantValidator.uniquePrincipalNames,
             KantValidator.noSelfCommunication,
@@ -71,7 +78,6 @@ export function registerValidationChecks(services: KantServices): void {
             KantValidator.knowledgeInSharedDef,
             KantValidator.invertedOneWay,
             KantValidator.consecutiveCommunication,
-            KantValidator.arrayNotationList,
             KantValidator.nestedKnowledgeAccess,
             KantValidator.knowledgeDeclarationBeforeUsage,
             KantValidator.inversionFunctionWithWrongNumberOfParameters,
@@ -87,7 +93,10 @@ export function registerValidationChecks(services: KantServices): void {
             KantValidator.emptyList,
             KantValidator.identifierWithNoValue,
             KantValidator.keysAreDeclared,
-            KantValidator.emtpySet
+            KantValidator.emtpySet,
+            KantValidator.knowledgeKnownToPrincipal,
+            KantValidator.test,
+            KantValidator.printBool
         ]
     }
     registry.register(checks, validator)
@@ -97,6 +106,12 @@ export function registerValidationChecks(services: KantServices): void {
  * Implementation of custom validations.
  */
 export const KantValidator = {
+    test: (protocol: Protocol, accept: ValidationAcceptor) => {
+        test.test(globalDescription, protocol, accept)
+    },
+    printBool: (protocol: Protocol, accept: ValidationAcceptor) => {
+        printBool.printBool(globalDescription, protocol, accept)
+    },
     debug: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
         debug.debug(protocol, accept)
     },
@@ -160,9 +175,6 @@ export const KantValidator = {
     consecutiveCommunication: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
         consecutiveCommunications.consecutiveCommunications(protocol, accept)
     },
-    arrayNotationList: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
-        arrayNotationList.arrayNotationList(protocol, accept)
-    },
     nestedKnowledgeAccess: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
         nestedKnowledgeAccess.nestedKnowledgeAccess(protocol, accept)
     },
@@ -213,6 +225,9 @@ export const KantValidator = {
     },
     emtpySet: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
         emptySet.emptySet(protocol, accept)
+    },
+    knowledgeKnownToPrincipal: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
+        knowledgeKnownToPrincipal.knowledgeKnownToPrincipal(protocol, accept)
     }
 }
 
