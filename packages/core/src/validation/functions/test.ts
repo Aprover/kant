@@ -64,11 +64,12 @@ export const test = {
                                     
                                     let index = 0
                                     if (e) {
-                                        accept('info', `${knowledgeName.concat("[" + i + "]").concat(e)}`, { node: protocol })
+                                        
                                         index = knowledgeClass.addAliasGlobalKnowledge(
                                             knowledgeName.concat("[" + i + "]"),
                                             e
                                         )!
+                                        accept('info', `${i}+${knowledgeClass.printc(knowledgeClass.printList)}`, { node: protocol })
                                         knowledgeClass.addNodePointer(knowledgeName, index)
                                     }
                                 }

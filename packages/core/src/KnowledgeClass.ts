@@ -25,9 +25,10 @@ export class KnowledgeClass {
     public _globalKnowledge: Array<List>;
     //private _principalAssociationKnowledge: Array<List<string>>;
     private _listNodePointerKnowledge: Map<string, number[]>;
-  
+    public printList: Array<List>;
     constructor() {
       this._globalKnowledge = new Array<List>;
+      this.printList = new Array<List>;
       //this._principalAssociationKnowledge = new Array<List<string>>;
       this._listNodePointerKnowledge = new Map<string, number[]>();
     }
@@ -49,8 +50,14 @@ export class KnowledgeClass {
       for (let i = 0; i < this._globalKnowledge.length; i++) {
         let currentList = this._globalKnowledge[i]
         if (currentList) {
+          let first= new List
+          first.add(currentList.get(currentList.size() - 1))
+          first.add(root)
+          this.printList.push(first)
           if (currentList.get(currentList.size() - 1) === root) {
+  
             currentList.add(alias)
+            
           }
           return i
         }
@@ -82,6 +89,21 @@ export class KnowledgeClass {
       let temp: string[] = new Array<string>
       for(let i = 0; i < this._globalKnowledge.length; i++) {
         let knowledgeList = this._globalKnowledge[i]
+        let temp2: string[] = []
+        if (knowledgeList !== undefined) {
+          for (let j = 0; j < knowledgeList.size(); j++) {
+            temp2 = [...temp2, knowledgeList.get(j)]
+          }
+          temp = [...temp, "[" + temp2.toString() + "]"]
+        }
+      }
+      return temp.toString().concat("\n")
+    }
+
+    public printc(current:Array<List>) {
+      let temp: string[] = new Array<string>
+      for(let i = 0; i < current.length; i++) {
+        let knowledgeList = current[i]
         let temp2: string[] = []
         if (knowledgeList !== undefined) {
           for (let j = 0; j < knowledgeList.size(); j++) {
