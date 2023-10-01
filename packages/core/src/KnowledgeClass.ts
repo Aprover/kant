@@ -24,13 +24,13 @@ class List<T> {
 
 export class KnowledgeClass {
     private _globalKnowledge: Array<List<string>>;
-    private _principalKnowledge: Array<List<string>>;
-    private _listKnowledge: Map<string, number[]>;
+    private _principalAssociationKnowledge: Array<List<string>>;
+    private _listNodePointerKnowledge: Map<string, number[]>;
   
     constructor() {
       this._globalKnowledge = new Array<List<string>>;
-      this._principalKnowledge = new Array<List<string>>;
-      this._listKnowledge = new Map<string, number[]>();
+      this._principalAssociationKnowledge = new Array<List<string>>;
+      this._listNodePointerKnowledge = new Map<string, number[]>();
     }
   
     // Getter and setter for globalKnowledge
@@ -42,6 +42,7 @@ export class KnowledgeClass {
       let newList = new List<string>()
       newList.add(name)
       this._globalKnowledge.push(newList)
+      this._listNodePointerKnowledge.set(name,[])
     }
 
     public addAliasGlobalKnowledge(alias: string, root: string) {
@@ -57,26 +58,25 @@ export class KnowledgeClass {
       }
     }
 
+    public addNodePointer(name: string, index: number){
+      if(this._listNodePointerKnowledge.has(name)){
+        let pointerList=new Array<number>
+        pointerList=this._listNodePointerKnowledge.get(name)!
+        pointerList.push(index)
+        this._listNodePointerKnowledge.set(name,pointerList)
+      }
+      
+    }
 
-
-
-  
-    // Getter and setter for principalKnowledge
-    get principalKnowledge() {
-      return this._principalKnowledge;
+    public cloneNodePoiter(name: string){
+      if(this._listNodePointerKnowledge.has(name)){
+        let tempPointer=this._listNodePointerKnowledge.get(name)!
+        for (let i = 0; i < tempPointer.length; i++) {
+          let currentList = this._globalKnowledge[tempPointer[i]!]!
+          currentList.add(name.concat("[" + i + "]"))
+        }
+      }
     }
-  
-    set principalKnowledge(value: Array<List<string>>) {
-      this._principalKnowledge = value;
-    }
-  
-    // Getter and setter for listKnowledge
-    get listKnowledge() {
-      return this._listKnowledge;
-    }
-  
-    set listKnowledge(value: Map<string, number[]>) {
-      this._listKnowledge = value;
-    }
+    
   }
   
