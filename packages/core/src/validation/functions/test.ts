@@ -51,9 +51,11 @@ export const test = {
 
                                     let i
                                     for (i = 0; i < tempArr.length; i++) {
-                                        let e = tempArr[i] 
+                                        let e = tempArr[i]
+                                        let index=0
                                         if (e) {
-                                            knowledgeClass.addAliasGlobalKnowledge(knowledgeName.concat("[" + i + "]"), e)
+                                            index=knowledgeClass.addAliasGlobalKnowledge(knowledgeName.concat("[" + i + "]"), e)!
+                                            knowledgeClass.addNodePointer(knowledgeName,index)
                                         }
                                     }
 
@@ -64,6 +66,28 @@ export const test = {
                                 break;
                             }
                             case "SPLIT": {
+                                if (isKnowledgeDefCustomName(kd.left)) {
+                                    const knowledgeSplit = kd.left.name
+                                    if (isKnowledgeFromFunctionArgsElements(kd.value.args)) {
+                                        const functionParam = kd.value.args.args
+                                        // TODO
+                                        /* if (isKnowledgeList(functionParam)) {
+                                            // warning 
+                                        } 
+                                        if (isKnowledgeSet(functionParam)) {
+                                            // warning 
+                                        }  */
+                                        if (isKnowledgeRef(functionParam)) {
+                                            const paramName = functionParam.access
+                                            if (paramName[0]) {
+                                                knowledgeClass.addAliasGlobalKnowledge(knowledgeSplit, paramName[0])
+                                                //da controllare la correttezza
+                                                knowledgeClass.cloneNodePoiter(paramName[0])
+                                            }
+                                        }
+                                    }
+                                    
+                                }
                                 // alias
                                 // modificare globalKnowledge
                                 // modificare listKnowledge (array puntatori ai valori delle lista)
