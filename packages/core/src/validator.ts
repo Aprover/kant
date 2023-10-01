@@ -57,7 +57,9 @@ export function registerValidationChecks(services: KantServices): void {
 
     const checks: ValidationChecks<KantAstType> = {
         Protocol: [
-            KantValidator.debug,
+            KantValidator.test,
+            KantValidator.printBool,
+            /* KantValidator.debug,
             KantValidator.uniqueKnowledgeNames,
             KantValidator.uniquePrincipalNames,
             KantValidator.noSelfCommunication,
@@ -94,9 +96,7 @@ export function registerValidationChecks(services: KantServices): void {
             KantValidator.identifierWithNoValue,
             KantValidator.keysAreDeclared,
             KantValidator.emtpySet,
-            KantValidator.knowledgeKnownToPrincipal,
-            KantValidator.test,
-            KantValidator.printBool
+            KantValidator.knowledgeKnownToPrincipal, */
         ]
     }
     registry.register(checks, validator)
