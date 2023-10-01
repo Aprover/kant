@@ -1,3 +1,6 @@
+import { ValidationAcceptor } from "langium";
+import { Protocol } from "./generated/ast";
+
 class List {
   private items: Array<string>;
 
@@ -50,19 +53,19 @@ export class KnowledgeClass {
       for (let i = 0; i < this._globalKnowledge.length; i++) {
         let currentList = this._globalKnowledge[i]
         if (currentList) {
-          let first= new List
+          /* let first= new List
           first.add(currentList.get(currentList.size() - 1))
           first.add(root)
-          this.printList.push(first)
+          this.printList.push(first) */
           if (currentList.get(currentList.size() - 1) === root) {
-  
             currentList.add(alias)
+			return i
             
-          }
-          return i
+		}
+          
         }
       }
-      return 0
+	  return -1
     }
 
     public addNodePointer(name: string, index: number){
@@ -75,14 +78,24 @@ export class KnowledgeClass {
       
     }
 
-    public cloneNodePoiter(name: string){
-      if(this._listNodePointerKnowledge.has(name)){
-        let tempPointer=this._listNodePointerKnowledge.get(name)!
-        for (let i = 0; i < tempPointer.length; i++) {
-          let currentList = this._globalKnowledge[tempPointer[i]!]!
-          currentList.add(name.concat("[" + i + "]"))
-        }
-      }
+
+    public cloneNodePoiter(alias: string, root: string, protocol: Protocol, accept: ValidationAcceptor){
+		for (let j = 0; j < this._globalKnowledge.length; j++) {
+			let subList = this._globalKnowledge[j]
+			if (subList) {
+				if (subList.get(subList.size() - 2) === root) {
+					root = subList.get(0)
+				}
+			}
+		}
+		accept('info', `root: ${root}`, { node: protocol })
+		if(this._listNodePointerKnowledge.has(root)){
+			let tempPointer=this._listNodePointerKnowledge.get(root)!
+			for (let i = 0; i < tempPointer.length; i++) {
+			let currentList = this._globalKnowledge[tempPointer[i]!]!
+			currentList.add(alias.concat("[" + i + "]"))
+			}
+		}
     }
 
     public print() {
@@ -120,5 +133,29 @@ export class KnowledgeClass {
       //this._principalAssociationKnowledge = new Array<List<string>>;
       this._listNodePointerKnowledge = new Map<string, number[]>();
     }
+
+	public insertAliasDecrypt(paramName: string, aliasName: string, protocol: Protocol, accept: ValidationAcceptor) {
+		let index = -1
+		for (let i = 0; i < this._globalKnowledge.length; i++) {
+			let currentList = this._globalKnowledge[i]
+			if (currentList) {
+				if (currentList.get(currentList.size() - 1) === paramName) {
+					index = i
+				}
+			} 
+		}
+		let firstValue = this._globalKnowledge[index]?.get(0)
+		accept('info', `firstValue: ${firstValue}`, { node: protocol })
+		if (firstValue) {
+			let currentPointerList = this._listNodePointerKnowledge.get(firstValue)
+			//accept('info', `currentPointerList.length: ${currentPointerList?.length}`, { node: protocol })
+			if (currentPointerList!.length > 0) {
+				for (let j = 0; j < currentPointerList?.length!; j++) {
+					let pointer = currentPointerList![j]
+					this._globalKnowledge[pointer!]?.add(aliasName.concat("[" + j + "]"))
+				}
+			} 
+		}
+	}
   }
   
