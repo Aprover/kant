@@ -1,5 +1,4 @@
-import { ValidationAcceptor } from "langium";
-import { Protocol } from "./generated/ast";
+
 
 class List {
   private items: Array<string>;
@@ -57,11 +56,13 @@ export class KnowledgeClass {
           first.add(currentList.get(currentList.size() - 1))
           first.add(root)
           this.printList.push(first) */
-          if (currentList.get(currentList.size() - 1) === root) {
-            currentList.add(alias)
-			return i
-            
-		}
+          for (let k = 0; k < currentList.size(); k++) {
+            if (currentList.get(k) === root) {
+              currentList.add(alias)
+              return i
+            }
+          }
+          
           
         }
       }
@@ -79,7 +80,7 @@ export class KnowledgeClass {
     }
 
 
-    public cloneNodePoiter(alias: string, root: string, protocol: Protocol, accept: ValidationAcceptor){
+    public cloneNodePoiter(alias: string, root: string){
 		for (let j = 0; j < this._globalKnowledge.length; j++) {
 			let subList = this._globalKnowledge[j]
 			if (subList) {
@@ -88,7 +89,7 @@ export class KnowledgeClass {
 				}
 			}
 		}
-		accept('info', `root: ${root}`, { node: protocol })
+		//accept('info', `root: ${root}`, { node: protocol })
 		if(this._listNodePointerKnowledge.has(root)){
 			let tempPointer=this._listNodePointerKnowledge.get(root)!
 			for (let i = 0; i < tempPointer.length; i++) {
@@ -134,7 +135,7 @@ export class KnowledgeClass {
       this._listNodePointerKnowledge = new Map<string, number[]>();
     }
 
-	public insertAliasDecrypt(paramName: string, aliasName: string, protocol: Protocol, accept: ValidationAcceptor) {
+	public insertAliasDecrypt(paramName: string, aliasName: string) {
 		let index = -1
 		for (let i = 0; i < this._globalKnowledge.length; i++) {
 			let currentList = this._globalKnowledge[i]
@@ -145,7 +146,7 @@ export class KnowledgeClass {
 			} 
 		}
 		let firstValue = this._globalKnowledge[index]?.get(0)
-		accept('info', `firstValue: ${firstValue}`, { node: protocol })
+		//accept('info', `firstValue: ${firstValue}`, { node: protocol })
 		if (firstValue) {
 			let currentPointerList = this._listNodePointerKnowledge.get(firstValue)
 			//accept('info', `currentPointerList.length: ${currentPointerList?.length}`, { node: protocol })

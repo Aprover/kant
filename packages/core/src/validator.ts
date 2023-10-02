@@ -106,8 +106,8 @@ export function registerValidationChecks(services: KantServices): void {
  * Implementation of custom validations.
  */
 export const KantValidator = {
-    test: (protocol: Protocol, accept: ValidationAcceptor) => {
-        test.test(globalDescription, protocol, accept)
+    test: (protocol: Protocol) => {
+        test.test(globalDescription, protocol)
     },
     printBool: (protocol: Protocol, accept: ValidationAcceptor) => {
         printBool.printBool(globalDescription, protocol, accept)

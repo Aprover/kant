@@ -1,4 +1,4 @@
-import { streamAllContents, ValidationAcceptor } from "langium"
+import { streamAllContents} from "langium"
 import {
     isFunctionDef,
     isKnowledgeDef,
@@ -14,7 +14,7 @@ import {
 import { KnowledgeClass } from "../../KnowledgeClass"
 
 export const test = {
-    test: (knowledgeClass: KnowledgeClass, protocol: Protocol, accept: ValidationAcceptor): void => {
+    test: (knowledgeClass: KnowledgeClass, protocol: Protocol): void => {
         knowledgeClass.emptyAll()
         streamAllContents(protocol)
             .filter(isKnowledgeDef)
@@ -95,12 +95,12 @@ export const test = {
                                         let x = functionParam[i]
                                         if (isKnowledgeRef(x)) {
                                             knowledgeClass.addAliasGlobalKnowledge(knowledgeSplit, x.ref)
-                                            knowledgeClass.cloneNodePoiter(knowledgeSplit, x.ref, protocol, accept)
+                                            knowledgeClass.cloneNodePoiter(knowledgeSplit, x.ref)
                                         }
                                         if (isListAccess(x)) {
                                             let finalString = x.ref.concat("[" + x.index + "]")
                                             knowledgeClass.addAliasGlobalKnowledge(knowledgeSplit, finalString)
-                                            knowledgeClass.cloneNodePoiter(knowledgeSplit, x.ref, protocol, accept)
+                                            knowledgeClass.cloneNodePoiter(knowledgeSplit, x.ref)
                                         }
                                     }
                                     // TODO
@@ -145,14 +145,14 @@ export const test = {
                                         firstParam = functionParam[0].ref
                                         if (isKnowledgeDefCustomName(kd.left)) {
                                             //accept('info', `(entrato nel ramo if desiderato) firstParam: ${firstParam}`, { node: protocol })
-                                            knowledgeClass.insertAliasDecrypt(firstParam, kd.left.name, protocol, accept)
+                                            knowledgeClass.insertAliasDecrypt(firstParam, kd.left.name)
                                         }
                                     }
                                     if (isListAccess(functionParam[0])) {
                                         let finalString = functionParam[0].ref.concat("[" + functionParam[0].index + "]")
                                         //accept('info', `(entrato nel ramo if desiderato) firstParam: ${finalString}`, { node: protocol })
                                         if (isKnowledgeDefCustomName(kd.left))
-                                        knowledgeClass.insertAliasDecrypt(finalString, kd.left.name, protocol, accept)                                        
+                                        knowledgeClass.insertAliasDecrypt(finalString, kd.left.name)                                        
                                     }
                                 }
                             }
