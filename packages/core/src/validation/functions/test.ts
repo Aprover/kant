@@ -11,7 +11,7 @@ import {
     isListAccess,
     Protocol
 } from "../../generated/ast"
-import { KnowledgeClass } from "../../KnowledgeClass"
+import { KnowledgeClass, List } from "../../KnowledgeClass"
 
 export const test = {
     test: (knowledgeClass: KnowledgeClass, protocol: Protocol): void => {
@@ -23,12 +23,29 @@ export const test = {
                     if (kd.type !== "state") {
                         // fresh e const
                         kd.name.forEach(kn => {
-                            knowledgeClass.addNewGlobalKnowledge(kn)
+                            let namesList: List = new List()
+                            
+                            if (kd.$container.$type === 'PrincipalKnowledgeDef') {
+                                kd.$container.target.forEach(principalName => {
+                                    namesList.add(principalName.ref?.name!)
+                                })
+                            }   
+                            knowledgeClass.addNewGlobalKnowledge(kn, namesList)
                         })
+                        
                     }
                 }
+            
 
                 if (isKnowledgeDefCustom(kd)) {
+                    let namesList: List = new List()
+                            
+                            if (kd.$container.$type === 'PrincipalKnowledgeDef') {
+                                kd.$container.target.forEach(principalName => {
+                                    namesList.add(principalName.ref?.name!)
+                                })
+                            }
+
                     if (isKnowledgeFromFunction(kd.value)) {
                         const functionName = kd.value.invoked.ref?.name
                         if (
@@ -41,13 +58,13 @@ export const test = {
                         ) {
                             if (isKnowledgeDefCustomName(kd.left)) {
                                 const knowledgeName = kd.left.name
-                                knowledgeClass.addNewGlobalKnowledge(knowledgeName)
+                                knowledgeClass.addNewGlobalKnowledge(knowledgeName, namesList)
                             }
                         }
                         if (functionName === "CONCAT") {
                             if (isKnowledgeDefCustomName(kd.left)) {
                                 const knowledgeName = kd.left.name
-                                knowledgeClass.addNewGlobalKnowledge(knowledgeName)
+                                knowledgeClass.addNewGlobalKnowledge(knowledgeName, namesList)
 
                                 let tempArr: string[] = []
                                 // TODO
@@ -73,10 +90,7 @@ export const test = {
                                     let index = 0
                                     if (e) {
                                         
-                                        index = knowledgeClass.addAliasGlobalKnowledge(
-                                            knowledgeName.concat("[" + i + "]"),
-                                            e
-                                        )!
+                                        index = knowledgeClass.addAliasGlobalKnowledge(knowledgeName.concat("[" + i + "]"),e, namesList)!
                                         //accept('info', `${i}+${knowledgeClass.printc(knowledgeClass.printList)}`, { node: protocol })
                                         knowledgeClass.addNodePointer(knowledgeName, index)
                                     }
@@ -94,13 +108,13 @@ export const test = {
                                     for (let i = 0; i < functionParam.length; i++) {
                                         let x = functionParam[i]
                                         if (isKnowledgeRef(x)) {
-                                            knowledgeClass.addAliasGlobalKnowledge(knowledgeSplit, x.ref)
-                                            knowledgeClass.cloneNodePoiter(knowledgeSplit, x.ref)
+                                            knowledgeClass.addAliasGlobalKnowledge(knowledgeSplit, x.ref, namesList)
+                                            knowledgeClass.cloneNodePoiter(knowledgeSplit, x.ref, namesList)
                                         }
                                         if (isListAccess(x)) {
                                             let finalString = x.ref.concat("[" + x.index + "]")
-                                            knowledgeClass.addAliasGlobalKnowledge(knowledgeSplit, finalString)
-                                            knowledgeClass.cloneNodePoiter(knowledgeSplit, x.ref)
+                                            knowledgeClass.addAliasGlobalKnowledge(knowledgeSplit, finalString, namesList)
+                                            knowledgeClass.cloneNodePoiter(knowledgeSplit, x.ref, namesList)
                                         }
                                     }
                                     // TODO
@@ -145,14 +159,14 @@ export const test = {
                                         firstParam = functionParam[0].ref
                                         if (isKnowledgeDefCustomName(kd.left)) {
                                             //accept('info', `(entrato nel ramo if desiderato) firstParam: ${firstParam}`, { node: protocol })
-                                            knowledgeClass.insertAliasDecrypt(firstParam, kd.left.name)
+                                            knowledgeClass.insertAliasDecrypt(firstParam, kd.left.name, namesList)
                                         }
                                     }
                                     if (isListAccess(functionParam[0])) {
                                         let finalString = functionParam[0].ref.concat("[" + functionParam[0].index + "]")
                                         //accept('info', `(entrato nel ramo if desiderato) firstParam: ${finalString}`, { node: protocol })
                                         if (isKnowledgeDefCustomName(kd.left))
-                                        knowledgeClass.insertAliasDecrypt(finalString, kd.left.name)                                        
+                                        knowledgeClass.insertAliasDecrypt(finalString, kd.left.name, namesList)                                        
                                     }
                                 }
                             }
@@ -166,11 +180,11 @@ export const test = {
                                     for (let i = 0; i < functionParam.length; i++) {
                                         let x = functionParam[i]
                                         if (isKnowledgeRef(x)) {
-                                            knowledgeClass.addAliasGlobalKnowledge(knowledgeName, x.ref)
+                                            knowledgeClass.addAliasGlobalKnowledge(knowledgeName, x.ref, namesList)
                                         }
                                         if (isListAccess(x)) {
                                             let finalString = x.ref.concat("[" + x.index + "]")
-                                            knowledgeClass.addAliasGlobalKnowledge(knowledgeName, finalString)
+                                            knowledgeClass.addAliasGlobalKnowledge(knowledgeName, finalString, namesList)
                                         }
                                     }
                                     // TODO
@@ -192,10 +206,17 @@ export const test = {
                             }
                         }
                         if (functionName === "HKDF") {
+                            let namesList: List = new List()
+                            
+                            if (kd.$container.$type === 'PrincipalKnowledgeDef') {
+                                kd.$container.target.forEach(principalName => {
+                                    namesList.add(principalName.ref?.name!)
+                                })
+                            }
                             // crea 5 valori nuovi (fresh)
                             if (isKnowledgeDefCustomName(kd.left)) {
                                 const name = kd.left.name
-                                knowledgeClass.addNewGlobalKnowledge(name)
+                                knowledgeClass.addNewGlobalKnowledge(name, namesList)
 
                                 let returnLength = 0
 
@@ -208,12 +229,13 @@ export const test = {
                                     })
 
                                 for (let i = 0; i < returnLength; i++) {
-                                    knowledgeClass.addNewGlobalKnowledge(name.concat("[" + i + "]"))
+                                    knowledgeClass.addNewGlobalKnowledge(name.concat("[" + i + "]"), namesList)
                                 }
                             }
                             // for now, no set or list destructuring
                         }
                     }
+                
                 }
             })
     }
