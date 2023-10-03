@@ -4,7 +4,15 @@ entry Protocol:
     elements+=Element*;
 
 Element:
-    FunctionDef | PropertyDef | SharedKnowledgeDef | Principals | PrincipalKnowledgeDef | Communication | ScenarioBranching | Check;
+    FunctionDef | PropertyDef | SharedKnowledgeDef | Principals | PrincipalKnowledgeDef | Communication | ScenarioBranching | Check | TypeDefinition ;
+
+TypeDefinition: 
+    'type' (elements+=Type | elements+=Type (',' elements+=Type)*)
+;
+
+Type:
+    name=ID
+;
 
 UniversalIntroduction:
     ('forall' args+=ID (',' args+=ID)* ':')
@@ -71,19 +79,24 @@ Principal:
 ;
 
 PrincipalKnowledgeDef:
-    target+=[Principal:ID] (',' target+=[Principal:ID])* 'know' '{' knowledge+=Knowledge (',' knowledge+=Knowledge)* '}'
+    target+=[Principal:ID] (',' target+=[Principal:ID])* 'know' '{' knowledge+=Knowledge (';' knowledge+=Knowledge)* ';' '}'
 ;
 
 Knowledge:
-    KnowledgeDef | KnowledgeValue;
+    KnowledgeDef;
 
 KnowledgeDef:
     KnowledgeDefBuiltin
     | KnowledgeDefCustom
+    | StateDefinition
 ;
 
 KnowledgeDefBuiltin:
-    type=('const' | 'fresh' | 'state' ) (name+=ID | '{' name+=ID (',' name+=ID)* '}')
+    type=('const' | 'fresh') (name+=ID (':' customType=[Type:ID]) | name+=ID (':' customType=[Type:ID]) (',' name+=ID (':' customType=[Type:ID]))*)
+;
+
+StateDefinition:
+    'state' (name+=ID | name+=ID (',' name+=ID)*)
 ;
 
 KnowledgeDefCustom:
@@ -156,7 +169,7 @@ KnowledgeGenerator:
 
 KnowledgeFromFunction:
     invoked=[FunctionDef:ID] '(' args=KnowledgeFromFunctionArgs? ')'
-	('with' key=KnowledgeValue)?;
+	('with' (keys+=(KnowledgeRef | KnowledgeFromFunction) | '{' keys+=(KnowledgeRef | KnowledgeFromFunction) (',' keys+=(KnowledgeRef | KnowledgeFromFunction))* '}'))?;
 
 KnowledgeFromFunctionArgs:
     KnowledgeFromFunctionArgsElements
@@ -168,7 +181,7 @@ KnowledgeFromFunctionArgsElements:
 ;
 
 Communication:
-    ('(' messageId=ID ')')? from=[Principal:ID] '->' to+=[Principal:ID] (',' to+=[Principal:ID])* ':' (ref+=KnowledgeRef | '[' ref+=KnowledgeRef (',' ref+=KnowledgeRef)* ']')
+    ('(' messageId=ID ')')? from=[Principal:ID] '->' to+=[Principal:ID] (',' to+=[Principal:ID])* ':' (ref=KnowledgeRef)
 ;
 
 ScenarioBranching:
