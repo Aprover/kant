@@ -1,15 +1,19 @@
 import type { AstNode, AstNodeDescription, LangiumDocument, PrecomputedScopes } from "langium"
 import { DefaultScopeComputation, MultiMap, streamAllContents } from "langium"
-import type { FunctionDef, Knowledge, KnowledgeDefBuiltin, KnowledgeDefCustom, Principal } from "./generated/ast"
+import type { FunctionDef, Principal } from "./generated/ast"
 import { isFunctionDef, isPrincipal } from "./generated/ast"
+import { Type, isType } from "langium/lib/grammar/generated/ast"
 
 export class KantScopeComputation extends DefaultScopeComputation {
     override computeExports(document: LangiumDocument): Promise<AstNodeDescription[]> {
         if (document.textDocument.uri.startsWith(`builtin`)) {
-            const descriptions = streamAllContents(document.parseResult.value)
+            let functionDescriptions = streamAllContents(document.parseResult.value)
                 .filter(isFunctionDef)
-                .map(functionDef => this.descriptions.createDescription(functionDef, functionDef.name, document))
-            return Promise.resolve(descriptions.toArray())
+                .map(functionDef => this.descriptions.createDescription(functionDef, functionDef.name, document)).toArray()
+            let typeDescriptions = streamAllContents(document.parseResult.value)
+            .filter(isType)
+            .map(t => this.descriptions.createDescription(t, t.name, document)).toArray()
+            return Promise.resolve(functionDescriptions.concat(typeDescriptions))
         } else {
             return Promise.resolve([])
         }
@@ -20,7 +24,7 @@ export class KantScopeComputation extends DefaultScopeComputation {
         const scopes = new MultiMap<AstNode, AstNodeDescription>()
         // Here we navigate the full AST - local scopes shall be available in the whole document
         for (const node of streamAllContents(rootNode)) {
-            if (isFunctionDef(node) || isPrincipal(node)) {
+            if (isFunctionDef(node) || isPrincipal(node) || isType(node)) {
                 const names = getLocalScopeNamesFrom(node)
                 names.forEach(name => scopes.add(rootNode, this.descriptions.createDescription(node, name, document)))
             }
@@ -44,16 +48,18 @@ export class KantScopeComputation extends DefaultScopeComputation {
     }
 }
 
-const getLocalScopeNamesFrom = (node: FunctionDef | Principal): string[] => {
+const getLocalScopeNamesFrom = (node: FunctionDef | Principal | Type): string[] => {
     switch (node.$type) {
         case `FunctionDef`:
             return [node.name]
         case `Principal`:
             return [node.name]
+        case 'Type':
+            return [node.name]
     }
 }
 
-const getKnowledgeNamesFrom = (knowledge: Knowledge): string[] => {
+/* const getKnowledgeNamesFrom = (knowledge: Knowledge): string[] => {
     const getKnowledgeNamesFromDef = (knowledgeDef: KnowledgeDefBuiltin | KnowledgeDefCustom): string[] => {
         switch (knowledgeDef.$type) {
             case `KnowledgeDefBuiltin`:
@@ -84,27 +90,7 @@ const getKnowledgeNamesFrom = (knowledge: Knowledge): string[] => {
         case `KnowledgeDefBuiltin`:
         case `KnowledgeDefCustom`:
             return getKnowledgeNamesFromDef(knowledge)
-        case `KnowledgeSet`:
-            return knowledge.content
-                .map(content => {
-                    // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check
-                    switch (content.$type) {
-                        case `KnowledgeDefBuiltin`:
-                        case `KnowledgeDefCustom`:
-                            return getKnowledgeNamesFromDef(content)
-                        case `KnowledgeSpreading`:
-                            switch (content.ref.$type) {
-                                case `KnowledgeList`:
-                                case `KnowledgeRef`:
-                                    return []
-                                case `KnowledgeSet`:
-                                    return getKnowledgeNamesFrom(content.ref)
-                            }
-                    }
-                    return []
-                })
-                .flat()
         default:
             return []
     }
-}
+} */

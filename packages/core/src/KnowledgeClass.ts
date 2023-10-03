@@ -198,5 +198,22 @@ export class KnowledgeClass {
 			} 
 		}
 	}
+
+  /**
+   * 
+   * @param name: communication payload
+   */
+  public addPrincipalToKnowledge(name: string, recipients: List) {
+    let found = false;
+    for(let i = 0; i < this._globalKnowledge.length && !found; i++) {
+      let innerList = this._globalKnowledge[i]
+      for (let j = 0; j < innerList?.size()! && !found; j++) {
+        if (innerList?.get(j) === name) {
+          found = true
+          this._principalAssociationKnowledge[i]![j]?.append(recipients)
+        }
+      } 
+    }
+
   }
-  
+}  

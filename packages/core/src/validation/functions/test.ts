@@ -1,5 +1,6 @@
 import { streamAllContents} from "langium"
 import {
+    isCommunication,
     isFunctionDef,
     isKnowledgeDef,
     isKnowledgeDefBuiltin,
@@ -20,7 +21,7 @@ export const test = {
             .filter(isKnowledgeDef)
             .forEach(kd => {
                 if (isKnowledgeDefBuiltin(kd)) {
-                    if (kd.type !== "state") {
+                    
                         // fresh e const
                         kd.name.forEach(kn => {
                             let namesList: List = new List()
@@ -33,7 +34,7 @@ export const test = {
                             knowledgeClass.addNewGlobalKnowledge(kn, namesList)
                         })
                         
-                    }
+                    
                 }
             
 
@@ -237,6 +238,18 @@ export const test = {
                     }
                 
                 }
+            })
+
+        streamAllContents(protocol)
+            .filter(isCommunication)
+            .forEach(c => {
+                const payload = c.ref.ref
+                const recipients = new List()
+                c.to.forEach(p => {
+                    recipients.add(p.ref?.name!)
+                })
+
+                knowledgeClass.addPrincipalToKnowledge(payload, recipients)
             })
     }
 }

@@ -9,6 +9,8 @@ export const prelude = {
     * of the protocol, therefore its definitions can be used directly without
     * prior definition in protocol definitions.
     */
+   type Nonce, SymmetricKey, PrivateKey, Exponent, Group, IdCertificate, BitStream, TimeStamp
+   
    function HASH(value) -> [ hash ] one way
    function MAC(k, value) -> [ mac ] one way
    function HKDF(salt, ikm, info) -> [ k1, k2, k3, k4, k5 ] one way
@@ -24,7 +26,7 @@ export const prelude = {
    
    function AEAD_ENC(content) with { k, auth } -> [ aead_enc ]
    function forall x, k, auth : AEAD_DEC(
-       content=AEAD_ENC(x) with { k, auth }
+       content = AEAD_ENC(x) with { k, auth }
    ) with { k, auth } -> [ x ]
    property AEAD_DEC invert AEAD_ENC
    
@@ -38,7 +40,5 @@ export const prelude = {
    
    function CONCAT(...values) -> [ value ]
    function forall v : SPLIT(value=CONCAT(...{ values=v })) -> [ v ]
-   
-   // pseudo-random function for master secret computation in ssl
-   function PRF(secret, label, seed) -> [ prf ] one way`
+   `
 }
