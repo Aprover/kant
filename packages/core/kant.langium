@@ -15,12 +15,12 @@ Type:
 ;
 
 UniversalIntroduction:
-    ('forall' args+=ID (',' args+=ID)* ':')
+    ('forall' args+=ID (':' customType=[Type:ID]) (',' args+=ID (':' customType=[Type:ID]))* '|')
 ;
 
 FunctionDef:
     'function'
-	(intro=UniversalIntroduction)?
+	//(intro=UniversalIntroduction)?
 	name=ID
 	('(' params+=FunctionParam (',' params+=FunctionParam)* ')')?
 	( 'with' key=FunctionKey)?
@@ -31,8 +31,24 @@ FunctionDef:
 	(ow?='one' 'way')?
 ;
 
+FunctionInversionDef:
+    'function'
+	intro=UniversalIntroduction
+	name=ID
+    // FunctionParam -> X 
+	('(' params+=FunctionParam (',' params+=FunctionParam)* ')')?
+    ( 'with' key=FunctionKey)?
+	(
+		'->' return=FunctionReturn
+	)
+;
+
+ParamType:
+    type=[Type:ID]
+;
+
 FunctionParam:
-    (variadic?='...')? name=ID (opt?='?')? ('=' type=KnowledgeValue)?
+    (variadic?='...')? name=(ParamType | KnowledgeFromFunction)
 ;
 
 FunctionKey:
@@ -141,8 +157,6 @@ KnowledgeDefListDestructuringAssignment:
 
 KnowledgeValue:
     KnowledgeRef
-	| KnowledgeList
-	| KnowledgeSet
 	| KnowledgeGenerator
 	| KnowledgeFromFunction
     | ListAccess
@@ -152,17 +166,8 @@ ListAccess:
     ref=ID '[' index=INT ']'
 ;
 
-KnowledgeList:
-    '[' (values+=(KnowledgeValue | KnowledgeSpreading) (',' values+=(KnowledgeValue | KnowledgeSpreading))*)? ']';
-
 KnowledgeRef:
-    ref=ID ('.' access+=ID)*;
-
-KnowledgeSet:
-    '{' (content+=(Knowledge | KnowledgeSpreading) (',' content+=(Knowledge | KnowledgeSpreading))*)? '}';
-
-KnowledgeSpreading:
-    '...' ref=(KnowledgeRef | KnowledgeSet | KnowledgeList);
+    ref=ID;
 
 KnowledgeGenerator:
     'gen' type=STRING;
@@ -173,7 +178,6 @@ KnowledgeFromFunction:
 
 KnowledgeFromFunctionArgs:
     KnowledgeFromFunctionArgsElements
-	| KnowledgeSpreading
 ;
 
 KnowledgeFromFunctionArgsElements:
