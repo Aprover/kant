@@ -14,8 +14,14 @@ import {
 } from "../../generated/ast"
 import { KnowledgeClass, List } from "../../KnowledgeClass"
 
-export const test = {
-    test: (knowledgeClass: KnowledgeClass, protocol: Protocol): void => {
+/**
+ * this function populates the KnowledgeClass shared object, it finds all knowledge definition/aliasing and indexes it using the methods of the shared object mentioned (addNewGlobalKnowledge/addAliasGlobalKnowledge).
+ * also, it call the methods (addPrincipalToKnowledge) of the shared object to create associations between knowledge references and principals
+ * finally, it call the methods (createNodePointer+cloneNodePointer) of the shared object to populate a map that contains pointers to the contents of lists of knowledge 
+ */
+export const knowledgeRetrieval = {
+    knowledgeRetrieval: (knowledgeClass: KnowledgeClass, protocol: Protocol): void => {
+
         knowledgeClass.emptyAll()
         streamAllContents(protocol)
             .filter(isKnowledgeDef)
@@ -48,7 +54,7 @@ export const test = {
                             }
 
                     if (isKnowledgeFromFunction(kd.value)) {
-                        const functionName = kd.value.invoked.ref?.name
+                        const functionName = kd.value.invoked
                         if (
                             functionName === "MAC" ||
                             functionName === "PW_HASH" ||

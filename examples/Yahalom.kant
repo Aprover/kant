@@ -6,47 +6,46 @@
 principal Alice,Bob,Server
 
 Alice know{
-    fresh valore,
-    const priv_a,
-    pub_a=PUB_GEN(priv_a)
+    const priv_a: PrivateKey;
+    pub_a=PUB_GEN(priv_a);
 }
 
 Server know{
-    const priv_s,
-    pub_s=PUB_GEN(priv_s),
-    const kas,
-    const kbs
+    const priv_s: PrivateKey;
+    pub_s=PUB_GEN(priv_s);
+    const kas: SymmetricKey;
+    const kbs: SymmetricKey;
 }
 
 Bob know{
-    const priv_b,
-    pub_b=PUB_GEN(priv_b)
+    const priv_b: PrivateKey;
+    pub_b=PUB_GEN(priv_b);
 } 
 
 Alice->Server: pub_a
 Bob->Server:pub_b
 
 Server know{
-    eas=PKE_ENC(kas) with pub_a,
-    ebs=PKE_ENC(kbs) with pub_b
+    eas=PKE_ENC(kas) with pub_a;
+    ebs=PKE_ENC(kbs) with pub_b;
 }
 
 Server->Alice:eas
 
 Alice know{
-    kas_rec=PKE_DEC(eas) with priv_a
+    kas_rec=PKE_DEC(eas) with priv_a;
 }
 
 Server->Bob:ebs
 
 Bob know{
-    kbs_rec=PKE_DEC(ebs) with priv_b
+    kbs_rec=PKE_DEC(ebs) with priv_b;
 }
 
 Alice know{
-    fresh na,
-    const cert_a,
-    m1=CONCAT(cert_a,na)
+    fresh na: Nonce;
+    const cert_a: IdCertificate;
+    m1=CONCAT(cert_a,na);
 }
 
 // principals = [[Alice, Alice], [Alice, Alice], [[Alice, Bob]]]
@@ -59,38 +58,31 @@ Alice -> Bob: m1
 Bob know{
     // diff replace
     // fresh test_b,
-    const cert_b,
-    fresh nb,
-    fresh x,
-    enc_a=ENC(m1) with kbs_rec,
-    m2=CONCAT(cert_b,nb,enc_a)
+    const cert_b: IdCertificate;
+    fresh nb: Nonce;
+    enc_a=ENC(m1) with kbs_rec;
+    m2=CONCAT(cert_b,nb,enc_a);
 }
 
 Bob->Server: m2
 
 Server know{
-    m2_rec = SPLIT(m2),
-    m1_dec=DEC(m2_rec[2]) with kbs,
-    fresh kab,
-    m1_split = SPLIT(m1_dec),
-    param_Alice=CONCAT(m2_rec[0],kab,m1_split[1]),
-    share_kab_Alice=ENC(param_Alice) with kas,
-    param_Bob=CONCAT(m1_split[0],kab,m2_rec[1]),
-    share_kab_Bob=ENC(param_Bob) with kbs,
-    m3=CONCAT(m2_rec[1],share_kab_Alice,share_kab_Bob)
+    m2_rec = SPLIT(m2);
+    m1_dec=DEC(m2_rec[2]) with kbs;
+    fresh kab: SymmetricKey;
+    m1_split = SPLIT(m1_dec);
+    param_Alice=CONCAT(m2_rec[0],kab,m1_split[1]);
+    share_kab_Alice=ENC(param_Alice) with kas;
+    param_Bob=CONCAT(m1_split[0],kab,m2_rec[1]);
+    share_kab_Bob=ENC(param_Bob) with kbs;
+    m3=CONCAT(m2_rec[1],share_kab_Alice,share_kab_Bob);
 }
 
-// // Server->Alice:m3
-// Server -> Alice: m3
+Server->Alice:m3
 
-// Alice know{
-//     m3_split = SPLIT(m3),
-//     share_kab_Alice_rec = m3_split[1],
-//     kab_dec_share=DEC(share_kab_Alice_rec) with kas_rec,
-//     kab_rec_a=kab_dec_share,
-//     nonce_enc=ENC(m3_split[0]) with kab_rec_a,
-//     m4=[m3_split[2],nonce_enc],
-//     fresh content,
-//     signed = SIGN(content),
-//     SIGNVERIF(signed)
-// }
+Alice know{
+    m3_split = SPLIT(m3);
+    kab_dec_share=DEC(m3_split[1]) with kas_rec;
+    kab_dec_share_rec = SPLIT(kab_dec_share);
+    nonce_enc=ENC(m3_split[0]) with kab_dec_share_rec[1];
+}

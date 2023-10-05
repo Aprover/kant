@@ -21,8 +21,9 @@ UniversalIntroduction:
 FunctionDef:
     'function'
 	//(intro=UniversalIntroduction)?
+
 	name=ID
-	('(' (var+=ID ':' params+=ParamType) ((',' (var+=ID ':' params+=ParamType))*)? ')')
+	('(' (variadic?='...')? (var+=ID ':' params+=ParamType) ((',' (var+=ID ':' params+=ParamType))*)? ')')
 	( 'with' key=FunctionKey)?
 	(
 		'->' return=FunctionReturn
@@ -88,7 +89,7 @@ FunctionReturnElement:
 ;
 
 PropertyDef:
-    'property' property=(KnowledgeEqualityDef | FunctionInversionDef | FunctionInversionPairing)
+    'property' property=(KnowledgeEqualityDef | FunctionInversionPairing)
 ;
 
 KnowledgeEqualityDef:
@@ -186,9 +187,13 @@ ListAccess:
 KnowledgeRef:
     ref=ID;
 
+// TODO: write validation functions to:
+    // 1. check cross-reference is correct
+    // 2. check no one way functions is passed as argument in a function inversion def
+
 KnowledgeFromFunction:
-    invoked=[FunctionDef:ID] '(' args=KnowledgeFromFunctionArgs? ')'
-	('with' (keys+=(KnowledgeRef | KnowledgeFromFunction) | '{' keys+=(KnowledgeRef | KnowledgeFromFunction) (',' keys+=(KnowledgeRef | KnowledgeFromFunction))* '}'))?;
+    invoked=ID '(' (variadic?='...')?  args=KnowledgeFromFunctionArgs? ')'
+	('with' (keys+=KnowledgeValue | '{' keys+=KnowledgeValue (',' keys+=KnowledgeValue)* '}'))?;
 
 KnowledgeFromFunctionArgs:
     KnowledgeFromFunctionArgsElements

@@ -2,9 +2,10 @@ import { type ValidationAcceptor, type ValidationChecks } from "langium"
 import { Protocol } from "./generated/ast"
 import { type KantAstType } from "./generated/ast"
 import type { KantServices } from "./module"
-import { test } from "./validation/functions/test"
+import { knowledgeRetrieval } from "./validation/functions/knowledge-retrieval"
 import { printBool } from "./validation/functions/print-bool"
 import { KnowledgeClass } from "./KnowledgeClass"
+import { debug } from "./validation/functions/debug"
 
 
 // QUI STRUTTURE DATI CONDIVISE DALLE FUNZIONI
@@ -19,8 +20,9 @@ export function registerValidationChecks(services: KantServices): void {
 
     const checks: ValidationChecks<KantAstType> = {
         Protocol: [
-            KantValidator.test,
+            KantValidator.knowledgeRetrieval,
             KantValidator.printBool,
+            KantValidator.debug
             /* KantValidator.debug,
             KantValidator.uniqueKnowledgeNames,
             KantValidator.uniquePrincipalNames,
@@ -68,15 +70,16 @@ export function registerValidationChecks(services: KantServices): void {
  * Implementation of custom validations.
  */
 export const KantValidator = {
-    test: (protocol: Protocol) => {
-        test.test(globalDescription, protocol)
+    knowledgeRetrieval: (protocol: Protocol) => {
+        knowledgeRetrieval.knowledgeRetrieval(globalDescription, protocol)
     },
     printBool: (protocol: Protocol, accept: ValidationAcceptor) => {
         printBool.printBool(globalDescription, protocol, accept)
     },
-    /* debug: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
+    debug: (protocol: Protocol, accept: ValidationAcceptor) => {
         debug.debug(protocol, accept)
-    },
+    }
+    /*
     uniqueKnowledgeNames: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
         uniqueKnowledgeNames.uniqueKnowledgeNames(protocol, accept)
     },
