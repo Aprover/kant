@@ -6,25 +6,23 @@
  * of the protocol, therefore its definitions can be used directly without
  * prior definition in protocol definitions.
  */
-type Nonce, SymmetricKey, PrivateKey, Exponent, Group, IdCertificate, BitStream, TimeStamp
+type Nonce, SymmetricKey, PrivateKey, PublicKey , Group, IdCertificate, BitString, Timestamp, Digest , Tag , Signature, Ciphertext
 
-function HASH(value) -> [ hash ] one way
-function MAC(k, value) -> [ mac ] one way
-function HKDF(salt, ikm, info) -> [ k1, k2, k3, k4, k5 ] one way
-function PW_HASH(value) -> [ pw_hash ] one way
+function HASH( value:BitString) -> [ hash:Digest ] one way
+function MAC(k:SymmetricKey, value:BitString) -> [ mac:Tag ] one way
+//function HKDF(salt, ikm, info) -> [ k1, k2, k3, k4, k5 ] one way
+//function PW_HASH(value) -> [ pw_hash ] one way
 
-function PUB_GEN(private) -> [ pub_gen ] one way
-function DF(base, exp) -> [ df ] one way
-property forall a, b : DF(PUB_GEN(b), a) equals DF(PUB_GEN(a), b)
+function PUB_GEN(private:PrivateKey) -> [ pub_gen:PublicKey ] one way
+function DF(base:Group, exp:PrivateKey) -> [ df:Group ] one way
+property forall a:PrivateKey, b:PrivateKey, g:Group | DF(DF(g,b), a) equals DF(DF(g,a), b)
 
-function ENC(content) with k -> [ enc ]
-function forall x, k : DEC(content=ENC(x) with k) with k -> [ x ]
+function ENC(content:BitString) with k:SymmetricKey -> [ enc:Ciphertext ]
+function forall x:BitString, k:SymmetricKey | DEC(ENC(x) with k) with k -> [ x]
 property DEC invert ENC
 
-function AEAD_ENC(content) with { k, auth } -> [ aead_enc ]
-function forall x, k, auth : AEAD_DEC(
-	content = AEAD_ENC(x) with { k, auth }
-) with { k, auth } -> [ x ]
+function AEAD_ENC(content:BitString) with { k:SymmetricKey, auth:BitString } -> [ aead_enc:Ciphertext ]
+function forall x:BitString, k:SymmetricKey, auth:BitString | AEAD_DEC(AEAD_ENC(x) with { k, auth }) with { k, auth } -> [ x ]
 property AEAD_DEC invert AEAD_ENC
 
 function PKE_ENC(content) with k -> [ pke_enc ]

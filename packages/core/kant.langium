@@ -4,10 +4,10 @@ entry Protocol:
     elements+=Element*;
 
 Element:
-    FunctionDef | PropertyDef | SharedKnowledgeDef | Principals | PrincipalKnowledgeDef | Communication | ScenarioBranching | Check | TypeDefinition ;
+    FunctionDef | FunctionInversionDef | PropertyDef | SharedKnowledgeDef | Principals | PrincipalKnowledgeDef | Communication | ScenarioBranching | Check | TypeDefinition ;
 
 TypeDefinition: 
-    'type' (elements+=Type | elements+=Type (',' elements+=Type)*)
+    'type' (name+=Type | name+=Type (',' name+=Type)*)
 ;
 
 Type:
@@ -22,7 +22,7 @@ FunctionDef:
     'function'
 	//(intro=UniversalIntroduction)?
 	name=ID
-	('(' params+=FunctionParam (',' params+=FunctionParam)* ')')?
+	('(' (var+=ID ':' params+=ParamType) ((',' (var+=ID ':' params+=ParamType))*)? ')')
 	( 'with' key=FunctionKey)?
 	(
 		'->' return=FunctionReturn
@@ -37,9 +37,9 @@ FunctionInversionDef:
 	name=ID
     // FunctionParam -> X 
 	('(' params+=FunctionParam (',' params+=FunctionParam)* ')')?
-    ( 'with' key=FunctionKey)?
+    ( 'with' key=FunctionInvKey)?
 	(
-		'->' return=FunctionReturn
+		'->' return=FunctionInvReturn
 	)
 ;
 
@@ -57,7 +57,25 @@ FunctionKey:
 ;
 
 FunctionKeyElement:
-    name+=ID ('=' type=KnowledgeValue)?
+    name+=ID (':' type=ParamType)
+;
+
+FunctionInvKey:
+    elements+=FunctionKeyInvElement
+	| '{' elements+=FunctionKeyInvElement (',' elements+=FunctionKeyInvElement)* '}'
+;
+
+FunctionKeyInvElement:
+    name+=ID 
+;
+
+FunctionInvReturn:
+    '[' elements+=FunctionReturnInvElement ']'
+	| '[' elements+=FunctionReturnInvElement (',' elements+=FunctionReturnInvElement)* ']'
+;
+
+FunctionReturnInvElement:
+    name+=ID 
 ;
 
 FunctionReturn:
@@ -66,11 +84,11 @@ FunctionReturn:
 ;
 
 FunctionReturnElement:
-    name+=ID ('=' type=KnowledgeValue)?
+    name+=ID (':' type=ParamType)
 ;
 
 PropertyDef:
-    'property' property=(KnowledgeEqualityDef | FunctionInversionDef)
+    'property' property=(KnowledgeEqualityDef | FunctionInversionDef | FunctionInversionPairing)
 ;
 
 KnowledgeEqualityDef:
@@ -78,8 +96,8 @@ KnowledgeEqualityDef:
 	value=KnowledgeValue 'equals' target=KnowledgeValue
 ;
 
-FunctionInversionDef:
-    inverter=[FunctionDef:ID] 'invert' function=[FunctionDef:ID]
+FunctionInversionPairing:
+    inverter=[FunctionInversionDef:ID] 'invert' function=[FunctionDef:ID]
 ;
 
 SharedKnowledgeDef:
@@ -157,7 +175,6 @@ KnowledgeDefListDestructuringAssignment:
 
 KnowledgeValue:
     KnowledgeRef
-	| KnowledgeGenerator
 	| KnowledgeFromFunction
     | ListAccess
 ;
@@ -168,9 +185,6 @@ ListAccess:
 
 KnowledgeRef:
     ref=ID;
-
-KnowledgeGenerator:
-    'gen' type=STRING;
 
 KnowledgeFromFunction:
     invoked=[FunctionDef:ID] '(' args=KnowledgeFromFunctionArgs? ')'
