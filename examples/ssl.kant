@@ -5,50 +5,48 @@
 principal Alice, Bob
 
 Alice know {
-    fresh priv_key_a, 
-    pub_key_a = PUB_GEN(priv_key_a)
+    fresh priv_key_a: PrivateKey; 
+    pub_key_a = PUB_GEN(priv_key_a);
 }
 
 Alice -> Bob : pub_key_a
 
 Bob know {
-    fresh priv_key_b,    
-    pub_key_b = PUB_GEN(priv_key_b)
+    fresh priv_key_b: PrivateKey;    
+    pub_key_b = PUB_GEN(priv_key_b);
 }
 
 Bob -> Alice : pub_key_b
 
 Alice know {
-    fresh kab,
-    enc_kab=PKE_ENC(kab) with pub_key_b
+    fresh kab: SymmetricKey;
+    enc_kab=PKE_ENC(kab) with pub_key_b;
 }
 
-Alice->Bob:enc_kab
+Alice -> Bob: enc_kab
 
-Bob know{
-    dec_kab=PKE_DEC(enc_kab) with priv_key_b,
-    fresh nb,
-    enc_nb=ENC(nb) with dec_kab
+Bob know {
+    dec_kab = PKE_DEC(enc_kab) with priv_key_b;
+    fresh nb: Nonce;
+    enc_nb = ENC(nb) with dec_kab;
 }
 
-Bob->Alice:enc_nb
+Bob -> Alice : enc_nb
 
-Alice know{
-    dec_nb=DEC(enc_nb) with kab,    
-    sign_nb=SIGN(dec_nb) with priv_key_a,
-    const cert_a,
-    cert_sign=CONCAT(cert_a,sign_nb),
-    enc_cert_sign=ENC(cert_sign) with kab
-
-
+Alice know {
+    dec_nb = DEC(enc_nb) with kab;
+    sign_nb = SIGN(dec_nb) with priv_key_a;
+    const cert_a: IdCertificate;
+    cert_sign = CONCAT(cert_a,sign_nb);
+    enc_cert_sign = ENC(cert_sign) with kab;
 }
 
-Alice->Bob:enc_cert_sign
+Alice -> Bob : enc_cert_sign
 
-Bob know{
-    dec_cert_sign=DEC(enc_cert_sign) with dec_kab,
-    split_cert_sign=SPLIT(dec_cert_sign),
-    SIGNVERIF(split_cert_sign[1]) with {pub_key_a,message=nb}
+Bob know {
+    dec_cert_sign = DEC(enc_cert_sign) with dec_kab;
+    split_cert_sign = SPLIT(dec_cert_sign);
+    verification = SIGNVERIF(split_cert_sign[1]) with { pub_key_a, nb };
 }
 
 check nb, dec_nb should be equal

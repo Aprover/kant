@@ -2,41 +2,41 @@
 principal Alice, Bob
 
 Alice know {
-    const priv_key_a, 
-    pub_key_a = PUB_GEN(priv_key_a)
+    const priv_key_a: SymmetricKey; 
+    pub_key_a = PUB_GEN(priv_key_a);
 }
 
 Bob know {
-    fresh priv_key_b,
-    pub_key_b = PUB_GEN(priv_key_b)
+    fresh priv_key_b: PrivateKey;
+    pub_key_b = PUB_GEN(priv_key_b);
 }
 
 Alice -> Bob : pub_key_a
 Bob -> Alice : pub_key_b
 
 Alice know {
-    fresh symmetric_key_a
+    fresh symmetric_key_a: SymmetricKey;
 }
 
 Alice know {
-    encrypted_key_a = PKE_ENC(symmetric_key_a) with pub_key_b
+    encrypted_key_a = PKE_ENC(symmetric_key_a) with pub_key_b;
 }
 
 Alice -> Bob : encrypted_key_a
 
 Bob know {
-    decrypted_key_a = PKE_DEC(encrypted_key_a) with priv_key_b
+    decrypted_key_a = PKE_DEC(encrypted_key_a) with priv_key_b;
     // symmetric_key_a == decrypted_key_a
 }
 Alice know {
-    const message,
+    const message: BitString;
     // <encrypted_message, symmetric_key_a, decrypted_key_a>
-    encrypted_message = ENC(message) with symmetric_key_a 
+    encrypted_message = ENC(message) with symmetric_key_a;
 
 }
 
 Alice -> Bob : encrypted_message
 
 Bob know {
-    decrypted_message = DEC(encrypted_message) with decrypted_key_a
+    decrypted_message = DEC(encrypted_message) with decrypted_key_a;
 }

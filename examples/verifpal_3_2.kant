@@ -1,19 +1,21 @@
 principal Alice, Bob 
 
 Alice, Bob know { 
-    const a
+    const a: BitString;
 }
 
 Alice know {	
-	fresh b,
-	ha = HASH(a),
-	hb = HASH(b)
+	fresh b: BitString;
+	ha = HASH(a);
+	hb = HASH(b);
+	ha_hb = CONCAT(ha, hb);
 }
 
-Alice -> Bob: [ ha, hb ]
+Alice -> Bob: ha_hb
 
 Bob know {
-	bha = HASH(a)
+	ha_hb_rec = SPLIT(ha_hb);
+	bha = HASH(ha_hb_rec[0]);
 }
 
 check ha, hb should be fresh
