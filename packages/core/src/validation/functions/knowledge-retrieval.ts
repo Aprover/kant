@@ -24,6 +24,7 @@ export const knowledgeRetrieval = {
     knowledgeRetrieval: (knowledgeClass: KnowledgeClass, protocol: Protocol): void => {
 
         knowledgeClass.flushKnowledge()
+        knowledgeClass.flushCardinality()
         streamAllContents(protocol)
             .filter(isKnowledgeDef)
             .forEach(kd => {

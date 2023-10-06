@@ -23,6 +23,7 @@ import { uniqueCommunicationNames } from "./validation/functions/unique-communic
 import { uniqueScenarioNames } from "./validation/functions/unique-scenario-names"
 import { functionsAllCaps } from "./validation/functions/functions-all-caps"
 import { consecutiveCommunications } from "./validation/functions/consecutive-communication"
+import { sameFunctionDefParamCardinality } from "./validation/functions/same-function-def-param-number"
 //import { variadicParameterNotLast } from "./validation/functions/variadic-parameter-not-last"
 //import { sameFunctionDefParamCardinality } from "./validation/functions/same-function-def-param-number"
 
@@ -60,7 +61,7 @@ export function registerValidationChecks(services: KantServices): void {
             KantValidator.functionsAllCaps,
             //KantValidator.sam
             KantValidator.consecutiveCommunication,
-            
+            KantValidator.sameFunctionDefParamNumber            
             //KantValidator.variadicParameterNotLast,
             
         ]
@@ -131,10 +132,13 @@ export const KantValidator = {
     },
     consecutiveCommunication: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
         consecutiveCommunications.consecutiveCommunications(protocol, accept)
-    },/*
+    },/* 
     variadicParameterNotLast: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
         variadicParameterNotLast.variadicParameterNotLast(protocol, accept)
-    },*/
+    }, */
+    sameFunctionDefParamNumber: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
+        sameFunctionDefParamCardinality.sameFunctionDefParamCardinality(globalDescription, protocol, accept)
+    }
 }
 
 export type KantValidator = typeof KantValidator

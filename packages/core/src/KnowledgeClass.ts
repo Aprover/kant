@@ -1,17 +1,20 @@
 
 
+import { KnowledgeFromFunction } from "./generated/ast";
 import { List } from "./validation/utility/list";
 
 export class KnowledgeClass {
-    public _globalKnowledge: Array<List>;
+    private _globalKnowledge: Array<List>;
     private _principalAssociationKnowledge: Array<Array<List>>;
     private _listNodePointerKnowledge: Map<string, number[]>;
     public printList: Array<List>;
+    private _functionCardinalityMap: Map<KnowledgeFromFunction, boolean>;
     constructor() {
       this._globalKnowledge = new Array<List>;
       this.printList = new Array<List>;
       this._principalAssociationKnowledge = new Array<Array<List>>;
       this._listNodePointerKnowledge = new Map<string, number[]>();
+      this._functionCardinalityMap = new Map<KnowledgeFromFunction, boolean>();
     }
   
     // Getter and setter for globalKnowledge
@@ -141,7 +144,7 @@ export class KnowledgeClass {
   }
 
   public flushCardinality(){
-
+    this._functionCardinalityMap = new Map<KnowledgeFromFunction, boolean>();
   }
 
 	/***
@@ -192,5 +195,13 @@ export class KnowledgeClass {
       } 
     }
 
+  }
+
+  public getFunctionCardinalityMap() {
+    return this._functionCardinalityMap
+  }
+
+  public setFunctionCardinalityMap(map: Map<KnowledgeFromFunction, boolean>) {
+    this._functionCardinalityMap = map;
   }
 }  

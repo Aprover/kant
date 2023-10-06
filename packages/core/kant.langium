@@ -23,7 +23,7 @@ FunctionDef:
 	//(intro=UniversalIntroduction)?
 
 	name=ID
-	('(' (variadic?='...')? (var+=ID ':' params+=ParamType) ((',' (var+=ID ':' params+=ParamType))*)? ')')
+	('(' (variadic?='...')? (params+=ID ':' typeParams+=ParamType) ((',' (params+=ID ':' typeParams+=ParamType))*)? ')')
 	( 'with' key=FunctionKey)?
 	(
 		'->' return=FunctionReturn
@@ -37,7 +37,7 @@ FunctionInversionDef:
 	intro=UniversalIntroduction
 	name=ID
     // FunctionParam -> X 
-	('(' params+=KnowledgeFromFunction (',' params+=KnowledgeFromFunction)* ')')?
+	('(' firstParam=KnowledgeFromFunction (',' otherParams+=KnowledgeValue)* ')')
     ( 'with' key=FunctionInvKey)?
 	(
 		'->' return=FunctionInvReturn
