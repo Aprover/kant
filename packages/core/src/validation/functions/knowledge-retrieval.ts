@@ -12,7 +12,8 @@ import {
     isListAccess,
     Protocol
 } from "../../generated/ast"
-import { KnowledgeClass, List } from "../../KnowledgeClass"
+import { KnowledgeClass } from "../../KnowledgeClass"
+import { List } from "../utility/list"
 
 /**
  * this function populates the KnowledgeClass shared object, it finds all knowledge definition/aliasing and indexes it using the methods of the shared object mentioned (addNewGlobalKnowledge/addAliasGlobalKnowledge).
@@ -22,7 +23,7 @@ import { KnowledgeClass, List } from "../../KnowledgeClass"
 export const knowledgeRetrieval = {
     knowledgeRetrieval: (knowledgeClass: KnowledgeClass, protocol: Protocol): void => {
 
-        knowledgeClass.emptyAll()
+        knowledgeClass.flushKnowledge()
         streamAllContents(protocol)
             .filter(isKnowledgeDef)
             .forEach(kd => {

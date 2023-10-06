@@ -8,10 +8,10 @@ export const variadicParameterNotLast = {
         streamAllContents(protocol)
             .filter(isFunctionDef)
             .forEach(functionDef => {
-                const params = functionDef.params
+                const params = functionDef.var
                 const len = params.length
                 for (let i = 0; i < len; i++) {
-                    if (params[i]?.variadic && i != len - 1) {
+                    if (params[i] && i != len - 1) {
                         accept(`error`, `Variadic parameter should be the last parameter of the function.`, {
                             node: functionDef
                         })

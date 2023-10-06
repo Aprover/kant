@@ -7,7 +7,6 @@ import {
     isKnowledgeDefCustom,
     isKnowledgeDefCustomName,
     isKnowledgeFromFunction,
-    isKnowledgeSet,
     type Protocol
 } from "../../generated/ast"
 
@@ -27,7 +26,6 @@ export const uniqueKnowledgeNames = {
                     })
                 } else if (
                     isKnowledgeDefCustom(kd) &&
-                    !isKnowledgeSet(kd.$container) &&
                     !isKnowledgeFromFunction(kd.$container.$container)
                 ) {
                     if (isKnowledgeDefCustomName(kd.left)) {

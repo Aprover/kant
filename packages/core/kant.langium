@@ -37,7 +37,7 @@ FunctionInversionDef:
 	intro=UniversalIntroduction
 	name=ID
     // FunctionParam -> X 
-	('(' params+=FunctionParam (',' params+=FunctionParam)* ')')?
+	('(' params+=KnowledgeFromFunction (',' params+=KnowledgeFromFunction)* ')')?
     ( 'with' key=FunctionInvKey)?
 	(
 		'->' return=FunctionInvReturn
@@ -48,9 +48,6 @@ ParamType:
     type=[Type:ID]
 ;
 
-FunctionParam:
-    (variadic?='...')? name=(ParamType | KnowledgeFromFunction)
-;
 
 FunctionKey:
     elements+=FunctionKeyElement
@@ -192,12 +189,10 @@ KnowledgeRef:
     // 2. check no one way functions is passed as argument in a function inversion def
 
 KnowledgeFromFunction:
-    invoked=ID '(' (variadic?='...')?  args=KnowledgeFromFunctionArgs? ')'
+    invoked=ID '(' (variadic?='...')?  args=KnowledgeFromFunctionArgsElements  ')'
 	('with' (keys+=KnowledgeValue | '{' keys+=KnowledgeValue (',' keys+=KnowledgeValue)* '}'))?;
 
-KnowledgeFromFunctionArgs:
-    KnowledgeFromFunctionArgsElements
-;
+
 
 KnowledgeFromFunctionArgsElements:
     (args+=KnowledgeValue (',' args+=KnowledgeValue)* )

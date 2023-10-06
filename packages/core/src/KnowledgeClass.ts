@@ -1,33 +1,6 @@
 
 
-export class List {
-  private items: Array<string>;
-
-  constructor() {
-      this.items = [];
-  }
-
-  size(): number {
-      return this.items.length;
-  }
-
-  add(value: string): void {
-      this.items.push(value);
-  }
-
-  get(index: number): string {
-      return this.items[index] as string;
-  }
-
-  append(list: List) {
-	for (let i = 0; i < list.size(); i++) {
-		this.items.push(list.get(i))
-	}
-  }
-  /* public includes(name: T): boolean {
-    return this.items.includes(name)
-  } */
-}
+import { List } from "./validation/utility/list";
 
 export class KnowledgeClass {
     public _globalKnowledge: Array<List>;
@@ -161,11 +134,15 @@ export class KnowledgeClass {
       return temp.toString().concat("\n")
 	}
 
-    public emptyAll() {
-      this._globalKnowledge = new Array<List>;
-      this._principalAssociationKnowledge = new Array<Array<List>>;
-      this._listNodePointerKnowledge = new Map<string, number[]>();
-    }
+  public flushKnowledge() {
+    this._globalKnowledge = new Array<List>;
+    this._principalAssociationKnowledge = new Array<Array<List>>;
+    this._listNodePointerKnowledge = new Map<string, number[]>();
+  }
+
+  public flushCardinality(){
+
+  }
 
 	/***
 	 * @param paramName: first (and only) param of decryption function
