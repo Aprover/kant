@@ -23,7 +23,11 @@ import { uniqueCommunicationNames } from "./validation/functions/unique-communic
 import { uniqueScenarioNames } from "./validation/functions/unique-scenario-names"
 import { functionsAllCaps } from "./validation/functions/functions-all-caps"
 import { consecutiveCommunications } from "./validation/functions/consecutive-communication"
+//import { sameFunctionDefParamCardinality } from "./validation/functions/same-function-def-param-number"
+import { listAccesPointsToList } from "./validation/functions/list-access-points-to-list"
+import { invertedOneWay } from "./validation/functions/inverted-one-way"
 import { sameFunctionDefParamCardinality } from "./validation/functions/same-function-def-param-number"
+import { correctFunctionInvocationParams } from "./validation/functions/correct-function-invocation-params"
 //import { variadicParameterNotLast } from "./validation/functions/variadic-parameter-not-last"
 //import { sameFunctionDefParamCardinality } from "./validation/functions/same-function-def-param-number"
 
@@ -61,9 +65,11 @@ export function registerValidationChecks(services: KantServices): void {
             KantValidator.functionsAllCaps,
             //KantValidator.sam
             KantValidator.consecutiveCommunication,
-            KantValidator.sameFunctionDefParamNumber            
+            KantValidator.sameFunctionDefParamNumber,            
             //KantValidator.variadicParameterNotLast,
-            
+            KantValidator.listAccessPointsToList,
+            KantValidator.invertedOneWay,
+            KantValidator.correctFunctionInvocationParams
         ]
     }
     registry.register(checks, validator)
@@ -138,6 +144,15 @@ export const KantValidator = {
     }, */
     sameFunctionDefParamNumber: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
         sameFunctionDefParamCardinality.sameFunctionDefParamCardinality(globalDescription, protocol, accept)
+    },
+    listAccessPointsToList: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
+        listAccesPointsToList.listAccesPointsToList(globalDescription, protocol, accept)
+    },
+    invertedOneWay: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
+        invertedOneWay.invertedOneWay(protocol, accept)
+    },
+    correctFunctionInvocationParams: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
+        correctFunctionInvocationParams.correctFunctionInvocationParams(globalDescription, protocol, accept)
     }
 }
 

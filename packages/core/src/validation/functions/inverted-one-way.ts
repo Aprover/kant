@@ -1,5 +1,5 @@
 import { streamAllContents, type MaybePromise, type ValidationAcceptor } from "langium"
-import { isFunctionDef, isFunctionInversionPairing, isPropertyDef, type Protocol } from "../../generated/ast"
+import { isFunctionDef, isFunctionInversionDef, isPropertyDef, type Protocol } from "../../generated/ast"
 
 export const invertedOneWay = {
     invertedOneWay: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
@@ -17,13 +17,14 @@ export const invertedOneWay = {
         streamAllContents(protocol)
             .filter(isPropertyDef)
             .forEach(pd => {
-                if (isFunctionInversionPairing(pd.property)) {
-                    const inverted = pd.property.function.ref?.name
-                    if (inverted !== undefined) {
-                        
-                        if (owFunctions.includes(inverted)) {
-                            accept(`error`, `${inverted} is a one way function, it can't be inverted.`, { node: pd })
-                        }
+                if (isFunctionInversionDef(pd.property)) {
+                    const inverterIsOw = pd.property.inverter.ref?.ow
+                    if (inverterIsOw) {
+                        accept(`error`, `${pd.property.inverter.ref?.name} is a one way function, it can't invert another function.`, { node: pd })
+                    }
+                    const invertedIsOw = pd.property.firstParam.invoked.ref?.ow
+                    if (invertedIsOw) {
+                        accept(`error`, `${pd.property.firstParam.invoked.ref?.name} is a one way function, it can't be inverted.`, { node: pd })
                     }
                 }
             })

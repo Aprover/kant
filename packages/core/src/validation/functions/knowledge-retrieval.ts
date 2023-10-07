@@ -31,16 +31,20 @@ export const knowledgeRetrieval = {
                 if (isKnowledgeDefBuiltin(kd)) {
                     
                         // fresh e const
-                        kd.name.forEach(kn => {
+                        
+                        for (let i = 0; i < kd.name.length; i++) {
+                            const name = kd.name[i]
+                            const type = kd.customType[i]?.ref?.name
                             let namesList: List = new List()
-                            
                             if (kd.$container.$type === 'PrincipalKnowledgeDef') {
                                 kd.$container.target.forEach(principalName => {
                                     namesList.add(principalName.ref?.name!)
                                 })
-                            }   
-                            knowledgeClass.addNewGlobalKnowledge(kn, namesList)
-                        })
+                            }
+                            knowledgeClass.addNewGlobalKnowledge(name!, namesList, type!)
+                        }
+
+                       
                         
                     
                 }
@@ -56,7 +60,13 @@ export const knowledgeRetrieval = {
                             }
 
                     if (isKnowledgeFromFunction(kd.value)) {
-                        const functionName = kd.value.invoked
+                        let functionName = kd.value.invoked.ref?.name!
+                        let returnType: string = ""
+                        if (kd.value.invoked.ref?.return.elements.length! > 1) {
+                            returnType = "BitString"
+                        } else {
+                            returnType = kd.value.invoked.ref?.return.elements[0]?.type.type.ref?.name!
+                        }
                         if (
                             functionName === "MAC" ||
                             functionName === "PW_HASH" ||
@@ -67,13 +77,13 @@ export const knowledgeRetrieval = {
                         ) {
                             if (isKnowledgeDefCustomName(kd.left)) {
                                 const knowledgeName = kd.left.name
-                                knowledgeClass.addNewGlobalKnowledge(knowledgeName, namesList)
+                                knowledgeClass.addNewGlobalKnowledge(knowledgeName, namesList, returnType)
                             }
                         }
                         if (functionName === "CONCAT") {
                             if (isKnowledgeDefCustomName(kd.left)) {
                                 const knowledgeName = kd.left.name
-                                knowledgeClass.addNewGlobalKnowledge(knowledgeName, namesList)
+                                knowledgeClass.addNewGlobalKnowledge(knowledgeName, namesList, "BitString")
 
                                 let tempArr: string[] = []
                                 // TODO
@@ -98,8 +108,8 @@ export const knowledgeRetrieval = {
                                     
                                     let index = 0
                                     if (e) {
-                                        
-                                        index = knowledgeClass.addAliasGlobalKnowledge(knowledgeName.concat("[" + i + "]"),e, namesList)!
+                                        let desiredType = knowledgeClass.getGlobalKnowledgeIndexMap().get(e)?.getType()
+                                        index = knowledgeClass.addAliasGlobalKnowledge(knowledgeName.concat("[" + i + "]"),e, namesList, desiredType!)!
                                         //accept('info', `${i}+${knowledgeClass.printc(knowledgeClass.printList)}`, { node: protocol })
                                         knowledgeClass.addNodePointer(knowledgeName, index)
                                     }
@@ -117,12 +127,12 @@ export const knowledgeRetrieval = {
                                     for (let i = 0; i < functionParam.length; i++) {
                                         let x = functionParam[i]
                                         if (isKnowledgeRef(x)) {
-                                            knowledgeClass.addAliasGlobalKnowledge(knowledgeSplit, x.ref, namesList)
+                                            knowledgeClass.addAliasGlobalKnowledge(knowledgeSplit, x.ref, namesList, returnType)
                                             knowledgeClass.cloneNodePoiter(knowledgeSplit, x.ref, namesList)
                                         }
                                         if (isListAccess(x)) {
                                             let finalString = x.ref.concat("[" + x.index + "]")
-                                            knowledgeClass.addAliasGlobalKnowledge(knowledgeSplit, finalString, namesList)
+                                            knowledgeClass.addAliasGlobalKnowledge(knowledgeSplit, finalString, namesList, returnType)
                                             knowledgeClass.cloneNodePoiter(knowledgeSplit, x.ref, namesList)
                                         }
                                     }
@@ -150,14 +160,46 @@ export const knowledgeRetrieval = {
                         if (
                             functionName === "ENC" ||
                             functionName === "PKE_ENC" ||
-                            functionName === "AEAD_ENC" ||
+                            functionName === "AEAD_ENC"
+                         ) {
+                            if (isKnowledgeDefCustomName(kd.left)) {
+                                const knowledgeName = kd.left.name
+                                if (isKnowledgeFromFunctionArgsElements(kd.value.args)) {
+                                    const functionParam = kd.value.args.args
+
+                                    for (let i = 0; i < functionParam.length; i++) {
+                                        let x = functionParam[i]
+                                        if (isKnowledgeRef(x)) {
+                                            knowledgeClass.addAliasGlobalKnowledge(knowledgeName, x.ref, namesList, returnType)
+                                        }
+                                        if (isListAccess(x)) {
+                                            let finalString = x.ref.concat("[" + x.index + "]")
+                                            knowledgeClass.addAliasGlobalKnowledge(knowledgeName, finalString, namesList, returnType)
+                                        }
+                                    }
+                                    // TODO
+                                    /* if (isKnowledgeList(functionParam)) {
+                                            // warning 
+                                        } 
+                                        if (isKnowledgeSet(functionParam)) {
+                                            // warning 
+                                        }  */
+                                    // TODO
+                                    // PKE_ENC E ANCHE LE FUNZIONI DI DECIFRATURA può prendere solo un parametro (riferimento)
+                                    /* if (isKnowledgeRef(functionParam)) {
+                                        const paramName = functionParam.access
+                                        if (paramName[0]) {
+                                            knowledgeClass.addAliasGlobalKnowledge(knowledgeName, paramName[0])
+                                        }
+                                    } */
+                                }
+                            }
+                         }
+                        if (
                             functionName === "DEC" ||
                             functionName === "PKE_DEC" ||
                             functionName === "AEAD_DEC"
                         ) {
-                            if (functionName === "DEC" ||
-                            functionName === "PKE_DEC" ||
-                            functionName === "AEAD_DEC") {
                                 if (isKnowledgeFromFunctionArgsElements(kd.value.args)) {
                                     const functionParam = kd.value.args.args
                                     let firstParam: string
@@ -178,42 +220,47 @@ export const knowledgeRetrieval = {
                                         knowledgeClass.insertAliasDecrypt(finalString, kd.left.name, namesList)                                        
                                     }
                                 }
-                            }
 
-                            // creano alias
-                            if (isKnowledgeDefCustomName(kd.left)) {
-                                const knowledgeName = kd.left.name
-                                if (isKnowledgeFromFunctionArgsElements(kd.value.args)) {
-                                    const functionParam = kd.value.args.args
-
-                                    for (let i = 0; i < functionParam.length; i++) {
-                                        let x = functionParam[i]
-                                        if (isKnowledgeRef(x)) {
-                                            knowledgeClass.addAliasGlobalKnowledge(knowledgeName, x.ref, namesList)
+                                if (isKnowledgeDefCustomName(kd.left)) {
+                                    const knowledgeName = kd.left.name
+                                    if (isKnowledgeFromFunctionArgsElements(kd.value.args)) {
+                                        const functionParam = kd.value.args.args
+    
+                                        for (let i = 0; i < functionParam.length; i++) {
+                                            let x = functionParam[i]
+                                            if (isKnowledgeRef(x)) {
+                                                let firstIndex = knowledgeClass.getGlobalKnowledgeIndexMap().get(x.ref)?.getFirstIndex()
+                                                let desiredType = knowledgeClass.getGlobalKnowledgeIndexMap().get(knowledgeClass.getKnowledgebyIndex(firstIndex!, 0)!)?.getType()
+                                                knowledgeClass.addAliasGlobalKnowledge(knowledgeName, x.ref, namesList, desiredType!)
+                                            }
+                                            if (isListAccess(x)) {
+                                                let finalString = x.ref.concat("[" + x.index + "]")
+                                                let firstIndex = knowledgeClass.getGlobalKnowledgeIndexMap().get(x.ref)?.getFirstIndex()
+                                                let desiredType = knowledgeClass.getGlobalKnowledgeIndexMap().get(knowledgeClass.getKnowledgebyIndex(firstIndex!, 0)!)?.getType()
+                                                
+                                                knowledgeClass.addAliasGlobalKnowledge(knowledgeName, finalString, namesList, desiredType!)
+                                            }
                                         }
-                                        if (isListAccess(x)) {
-                                            let finalString = x.ref.concat("[" + x.index + "]")
-                                            knowledgeClass.addAliasGlobalKnowledge(knowledgeName, finalString, namesList)
-                                        }
+                                        // TODO
+                                        /* if (isKnowledgeList(functionParam)) {
+                                                // warning 
+                                            } 
+                                            if (isKnowledgeSet(functionParam)) {
+                                                // warning 
+                                            }  */
+                                        // TODO
+                                        // PKE_ENC E ANCHE LE FUNZIONI DI DECIFRATURA può prendere solo un parametro (riferimento)
+                                        /* if (isKnowledgeRef(functionParam)) {
+                                            const paramName = functionParam.access
+                                            if (paramName[0]) {
+                                                knowledgeClass.addAliasGlobalKnowledge(knowledgeName, paramName[0])
+                                            }
+                                        } */
                                     }
-                                    // TODO
-                                    /* if (isKnowledgeList(functionParam)) {
-                                            // warning 
-                                        } 
-                                        if (isKnowledgeSet(functionParam)) {
-                                            // warning 
-                                        }  */
-                                    // TODO
-                                    // PKE_ENC E ANCHE LE FUNZIONI DI DECIFRATURA può prendere solo un parametro (riferimento)
-                                    /* if (isKnowledgeRef(functionParam)) {
-                                        const paramName = functionParam.access
-                                        if (paramName[0]) {
-                                            knowledgeClass.addAliasGlobalKnowledge(knowledgeName, paramName[0])
-                                        }
-                                    } */
                                 }
                             }
-                        }
+                            // creano alias
+                        
                         if (functionName === "HKDF") {
                             let namesList: List = new List()
                             
@@ -225,7 +272,7 @@ export const knowledgeRetrieval = {
                             // crea 5 valori nuovi (fresh)
                             if (isKnowledgeDefCustomName(kd.left)) {
                                 const name = kd.left.name
-                                knowledgeClass.addNewGlobalKnowledge(name, namesList)
+                                knowledgeClass.addNewGlobalKnowledge(name, namesList, "BitString")
 
                                 let returnLength = 0
 
@@ -238,7 +285,7 @@ export const knowledgeRetrieval = {
                                     })
 
                                 for (let i = 0; i < returnLength; i++) {
-                                    knowledgeClass.addNewGlobalKnowledge(name.concat("[" + i + "]"), namesList)
+                                    knowledgeClass.addNewGlobalKnowledge(name.concat("[" + i + "]"), namesList, "SymmetricKey")
                                 }
                             }
                             // for now, no set or list destructuring

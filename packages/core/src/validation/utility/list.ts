@@ -9,8 +9,8 @@ export class List {
         return this.items.length;
     }
   
-    add(value: string): void {
-        this.items.push(value);
+    add(value: string): number {
+        return this.items.push(value)
     }
   
     get(index: number): string {

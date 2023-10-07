@@ -20,10 +20,12 @@ UniversalIntroduction:
 
 FunctionDef:
     'function'
+
+    // inversion PROPERTY
 	//(intro=UniversalIntroduction)?
 
 	name=ID
-	('(' (variadic?='...')? (params+=ID ':' typeParams+=ParamType) ((',' (params+=ID ':' typeParams+=ParamType))*)? ')')
+	('(' (variadic?='...')? (params+=ID ':' typeParams+=ParamType) (',' (params+=ID ':' typeParams+=ParamType))* ')')
 	( 'with' key=FunctionKey)?
 	(
 		'->' return=FunctionReturn
@@ -33,9 +35,8 @@ FunctionDef:
 ;
 
 FunctionInversionDef:
-    'function'
 	intro=UniversalIntroduction
-	name=ID
+	inverter=[FunctionDef:ID]
     // FunctionParam -> X 
 	('(' firstParam=KnowledgeFromFunction (',' otherParams+=KnowledgeValue)* ')')
     ( 'with' key=FunctionInvKey)?
@@ -86,7 +87,7 @@ FunctionReturnElement:
 ;
 
 PropertyDef:
-    'property' property=(KnowledgeEqualityDef | FunctionInversionPairing)
+    'property' property=(KnowledgeEqualityDef | FunctionInversionDef)
 ;
 
 KnowledgeEqualityDef:
@@ -94,9 +95,9 @@ KnowledgeEqualityDef:
 	value=KnowledgeValue 'equals' target=KnowledgeValue
 ;
 
-FunctionInversionPairing:
+/* FunctionInversionPairing:
     inverter=[FunctionInversionDef:ID] 'invert' function=[FunctionDef:ID]
-;
+; */
 
 SharedKnowledgeDef:
     'shared' 'knowledge' knowledge=Knowledge
@@ -124,7 +125,7 @@ KnowledgeDef:
 ;
 
 KnowledgeDefBuiltin:
-    type=('const' | 'fresh') (name+=ID (':' customType=[Type:ID]) | name+=ID (':' customType=[Type:ID]) (',' name+=ID (':' customType=[Type:ID]))*)
+    type=('const' | 'fresh') (name+=ID (':' customType+=[Type:ID]) | name+=ID (':' customType+=[Type:ID]) (',' name+=ID (':' customType+=[Type:ID]))*)
 ;
 
 StateDefinition:
@@ -174,6 +175,7 @@ KnowledgeDefListDestructuringAssignment:
 KnowledgeValue:
     KnowledgeRef
 	| KnowledgeFromFunction
+    //| KnowledgeFromInversionFunction
     | ListAccess
 ;
 
@@ -189,9 +191,14 @@ KnowledgeRef:
     // 2. check no one way functions is passed as argument in a function inversion def
 
 KnowledgeFromFunction:
-    invoked=ID '(' (variadic?='...')?  args=KnowledgeFromFunctionArgsElements  ')'
-	('with' (keys+=KnowledgeValue | '{' keys+=KnowledgeValue (',' keys+=KnowledgeValue)* '}'))?;
+    invoked=[FunctionDef:ID] '(' (variadic?='...')?  args=KnowledgeFromFunctionArgsElements  ')'
+	('with' (keys+=KnowledgeValue | '{' keys+=KnowledgeValue (',' keys+=KnowledgeValue)* '}'))?
+;
 
+/* KnowledgeFromInversionFunction:
+    '[inv]' invoked=[FunctionInversionDef:ID] '(' (variadic?='...')?  args=KnowledgeFromFunctionArgsElements  ')'
+	('with' (keys+=KnowledgeValue | '{' keys+=KnowledgeValue (',' keys+=KnowledgeValue)* '}'))?
+; */
 
 
 KnowledgeFromFunctionArgsElements:
