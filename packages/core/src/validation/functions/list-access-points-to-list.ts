@@ -10,10 +10,11 @@ export const listAccesPointsToList = {
 
                 const listAccessReference = la.ref
                 let isList = false;
-                knowledgeClass.getGlobalKnowledge()
+                const firstIndex = knowledgeClass.getGlobalKnowledgeDescriptorMap().get(listAccessReference)?.getFirstIndex()
+                const root = knowledgeClass.getGlobalKnowledge()[firstIndex!]?.get(0)
 
                 for (const key of knowledgeClass.getListNodePointerKnowledge().keys()) {
-                    if (listAccessReference === key) {
+                    if (root === key) {
                         if (knowledgeClass.getListNodePointerKnowledge().get(key)?.length! > 0) {
                             isList = true;
                         }

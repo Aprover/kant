@@ -22,7 +22,18 @@ export class List {
           this.items.push(list.get(i))
       }
     }
-    /* public includes(name: T): boolean {
-      return this.items.includes(name)
-    } */
+
+    contains(name: string) {
+        let found = false
+        for (let i = 0; i < this.size(); i++) {
+            if (this.get(i) === name) {
+                found = true
+            }            
+        }
+        return found
+    }
+    
+    toString() {
+        return this.items.toString()
+    }
   }

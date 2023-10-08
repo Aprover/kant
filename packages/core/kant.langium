@@ -175,7 +175,6 @@ KnowledgeDefListDestructuringAssignment:
 KnowledgeValue:
     KnowledgeRef
 	| KnowledgeFromFunction
-    //| KnowledgeFromInversionFunction
     | ListAccess
 ;
 

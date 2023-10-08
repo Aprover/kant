@@ -9,12 +9,8 @@ export class KnowledgeClass {
     private _principalAssociationKnowledge: Array<Array<List>>;
     private _listNodePointerKnowledge: Map<string, number[]>;
     public printList: Array<List>;
-
-
     // used to track which function invocations have a correct number of parameters
     private _functionCardinalityMap: Map<KnowledgeFromFunction, boolean>;
-    
-    
     private _globalKnowledgeDescriptorMap: Map<string, KnowledgeNodeDescriptor>; 
     constructor() {
       this._globalKnowledge = new Array<List>;
@@ -23,6 +19,10 @@ export class KnowledgeClass {
       this._listNodePointerKnowledge = new Map<string, number[]>();
       this._functionCardinalityMap = new Map<KnowledgeFromFunction, boolean>();
       this._globalKnowledgeDescriptorMap = new Map<string, KnowledgeNodeDescriptor>();
+    }
+
+    public getPrincipalsAssociationKnowledge() {
+      return this._principalAssociationKnowledge
     }
 
     public getGlobalKnowledgeDescriptorMap() {

@@ -28,6 +28,8 @@ import { listAccesPointsToList } from "./validation/functions/list-access-points
 import { invertedOneWay } from "./validation/functions/inverted-one-way"
 import { sameFunctionDefParamCardinality } from "./validation/functions/same-function-def-param-number"
 import { correctFunctionInvocationParams } from "./validation/functions/correct-function-invocation-params"
+import { knowledgeIsDeclared } from "./validation/functions/knowledge-is-declared"
+import { knowledgeIsDeclaredForPrincipal } from "./validation/functions/knowledge-is-declared-for-principal"
 //import { variadicParameterNotLast } from "./validation/functions/variadic-parameter-not-last"
 //import { sameFunctionDefParamCardinality } from "./validation/functions/same-function-def-param-number"
 
@@ -69,7 +71,9 @@ export function registerValidationChecks(services: KantServices): void {
             //KantValidator.variadicParameterNotLast,
             KantValidator.listAccessPointsToList,
             KantValidator.invertedOneWay,
-            KantValidator.correctFunctionInvocationParams
+            KantValidator.correctFunctionInvocationParams,
+            KantValidator.knowledgeIsDeclared,
+            KantValidator.knowledgeIsDeclaredForPrincipal
         ]
     }
     registry.register(checks, validator)
@@ -153,6 +157,12 @@ export const KantValidator = {
     },
     correctFunctionInvocationParams: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
         correctFunctionInvocationParams.correctFunctionInvocationParams(globalDescription, protocol, accept)
+    },
+    knowledgeIsDeclared: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
+        knowledgeIsDeclared.knowledgeIsDeclared(globalDescription, protocol, accept)
+    },
+    knowledgeIsDeclaredForPrincipal: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
+        knowledgeIsDeclaredForPrincipal.knowledgeIsDeclaredForPrincipal(globalDescription, protocol, accept)
     }
 }
 
