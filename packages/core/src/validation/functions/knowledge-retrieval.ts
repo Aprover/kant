@@ -108,7 +108,7 @@ export const knowledgeRetrieval = {
                                     
                                     let index = 0
                                     if (e) {
-                                        let desiredType = knowledgeClass.getGlobalKnowledgeIndexMap().get(e)?.getType()
+                                        let desiredType = knowledgeClass.getGlobalKnowledgeDescriptorMap().get(e)?.getType()
                                         index = knowledgeClass.addAliasGlobalKnowledge(knowledgeName.concat("[" + i + "]"),e, namesList, desiredType!)!
                                         //accept('info', `${i}+${knowledgeClass.printc(knowledgeClass.printList)}`, { node: protocol })
                                         knowledgeClass.addNodePointer(knowledgeName, index)
@@ -229,14 +229,14 @@ export const knowledgeRetrieval = {
                                         for (let i = 0; i < functionParam.length; i++) {
                                             let x = functionParam[i]
                                             if (isKnowledgeRef(x)) {
-                                                let firstIndex = knowledgeClass.getGlobalKnowledgeIndexMap().get(x.ref)?.getFirstIndex()
-                                                let desiredType = knowledgeClass.getGlobalKnowledgeIndexMap().get(knowledgeClass.getKnowledgebyIndex(firstIndex!, 0)!)?.getType()
+                                                let firstIndex = knowledgeClass.getGlobalKnowledgeDescriptorMap().get(x.ref)?.getFirstIndex()
+                                                let desiredType = knowledgeClass.getGlobalKnowledgeDescriptorMap().get(knowledgeClass.getKnowledgebyIndex(firstIndex!, 0)!)?.getType()
                                                 knowledgeClass.addAliasGlobalKnowledge(knowledgeName, x.ref, namesList, desiredType!)
                                             }
                                             if (isListAccess(x)) {
                                                 let finalString = x.ref.concat("[" + x.index + "]")
-                                                let firstIndex = knowledgeClass.getGlobalKnowledgeIndexMap().get(x.ref)?.getFirstIndex()
-                                                let desiredType = knowledgeClass.getGlobalKnowledgeIndexMap().get(knowledgeClass.getKnowledgebyIndex(firstIndex!, 0)!)?.getType()
+                                                let firstIndex = knowledgeClass.getGlobalKnowledgeDescriptorMap().get(x.ref)?.getFirstIndex()
+                                                let desiredType = knowledgeClass.getGlobalKnowledgeDescriptorMap().get(knowledgeClass.getKnowledgebyIndex(firstIndex!, 0)!)?.getType()
                                                 
                                                 knowledgeClass.addAliasGlobalKnowledge(knowledgeName, finalString, namesList, desiredType!)
                                             }

@@ -1,0 +1,10 @@
+principal Alice,Bob
+
+Alice know{
+    fresh na:Nonce;
+    fresh pk:PrivateKey;
+    const k:SymmetricKey;
+    h=HASH(na);
+    ch=ENC(pk)with pk;
+}
+

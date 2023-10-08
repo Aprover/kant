@@ -92,7 +92,7 @@ PropertyDef:
 
 KnowledgeEqualityDef:
     (intro=UniversalIntroduction)?
-	value=KnowledgeValue 'equals' target=KnowledgeValue
+	value=KnowledgeFromFunction 'equals' target=KnowledgeFromFunction
 ;
 
 /* FunctionInversionPairing:
@@ -133,7 +133,7 @@ StateDefinition:
 ;
 
 KnowledgeDefCustom:
-    left=(KnowledgeDefCustomName | KnowledgeDefDestructuring) '=' value=KnowledgeValue
+    left=(KnowledgeDefCustomName | KnowledgeDefDestructuring) '=' value=KnowledgeFromFunction
 ;
 
 KnowledgeDefCustomName:
