@@ -12,6 +12,13 @@ export class KnowledgeClass {
     // used to track which function invocations have a correct number of parameters
     private _functionCardinalityMap: Map<KnowledgeFromFunction, boolean>;
     private _globalKnowledgeDescriptorMap: Map<string, KnowledgeNodeDescriptor>; 
+    private _functionSecondaryCardinalityMap: Map<KnowledgeFromFunction, boolean>;
+    // It contains public and private key associated with the index in which it is possible
+    // to find te pairing key
+    private _keyPairing:Map<string,number[]>;
+    private _paramKeyPairing:Map<string,string>;
+    private _indexesParamKeyPairing:Map<string,boolean>;
+
     constructor() {
       this._globalKnowledge = new Array<List>;
       this.printList = new Array<List>;
@@ -19,6 +26,13 @@ export class KnowledgeClass {
       this._listNodePointerKnowledge = new Map<string, number[]>();
       this._functionCardinalityMap = new Map<KnowledgeFromFunction, boolean>();
       this._globalKnowledgeDescriptorMap = new Map<string, KnowledgeNodeDescriptor>();
+      this._functionSecondaryCardinalityMap = new Map<KnowledgeFromFunction, boolean>();
+      this._keyPairing=new Map<string,number[]>();
+      this._paramKeyPairing=new Map<string,string>();
+      this._indexesParamKeyPairing= new Map<string,boolean>();
+    }
+    public getKeyPairing(key:string){
+      return this._keyPairing.get(key)
     }
 
     public getPrincipalsAssociationKnowledge() {
@@ -120,11 +134,18 @@ export class KnowledgeClass {
 			for (let i = 0; i < tempPointer.length; i++) {
         let currentList = this._globalKnowledge[tempPointer[i]!]!
       let actualName = alias.concat("[" + i + "]")
-			let secondIndex = currentList.add(actualName)
+			let secondIndex = currentList.add(actualName)-1
 			let currentPrincipalList = this._principalAssociationKnowledge[tempPointer[i]!]!
 			currentPrincipalList.push(namesList)
       let firstIndex = tempPointer[i]
-      let type = this._globalKnowledgeDescriptorMap.get(currentList.get(currentList.size() - 2))?.getType()
+      let typeIndex=0
+      for(let k=currentList.size()-2; k>0;k-- ){
+        if(currentList.get(k).includes("[" + i + "]")){
+          typeIndex=k
+          k=0
+        }
+      }
+      let type = this._globalKnowledgeDescriptorMap.get(currentList.get(typeIndex))?.getType()
       this._globalKnowledgeDescriptorMap.set(actualName, new KnowledgeNodeDescriptor(firstIndex!, secondIndex, type!))
 			}
 		}
@@ -175,10 +196,14 @@ export class KnowledgeClass {
     this._principalAssociationKnowledge = new Array<Array<List>>;
     this._listNodePointerKnowledge = new Map<string, number[]>();
     this._globalKnowledgeDescriptorMap = new Map<string, KnowledgeNodeDescriptor>();
+    this._keyPairing=new Map<string, number[]>();
+    this._paramKeyPairing=new Map<string,string>();
+    this._indexesParamKeyPairing= new Map<string,boolean>();
   }
 
   public flushCardinality(){
     this._functionCardinalityMap = new Map<KnowledgeFromFunction, boolean>();
+    this._functionSecondaryCardinalityMap = new Map<KnowledgeFromFunction, boolean>();
   }
 
 	/***
@@ -206,8 +231,10 @@ export class KnowledgeClass {
 			if (currentPointerList!.length > 0) {
 				for (let j = 0; j < currentPointerList?.length!; j++) {
 					let pointer = currentPointerList![j]
-					this._globalKnowledge[pointer!]?.add(aliasName.concat("[" + j + "]"))
+          let actualName=aliasName.concat("[" + j + "]")
+					this._globalKnowledge[pointer!]?.add(actualName)
 					this._principalAssociationKnowledge[pointer!]?.push(namesList)
+         // this._globalKnowledgeDescriptorMap.set(actualName, new KnowledgeNodeDescriptor(pointer!, secondIndex, type!))
 				}
 			} 
 		}
@@ -235,10 +262,51 @@ export class KnowledgeClass {
     return this._functionCardinalityMap
   }
 
+  public getFunctionSecondaryCardinalityMap() {
+    return this._functionSecondaryCardinalityMap
+  }
+
   public setFunctionCardinalityMap(map: Map<KnowledgeFromFunction, boolean>) {
     this._functionCardinalityMap = map;
   }
 
+  public setFunctionSecondaryCardinalityMap(map: Map<KnowledgeFromFunction, boolean>) {
+    this._functionSecondaryCardinalityMap = map;
+  }
+
+  public setKeyPairing(pubkey:string,privatekey:string){
+    this._keyPairing.set(pubkey,[this._globalKnowledgeDescriptorMap.get(pubkey)?.getFirstIndex()!,this._globalKnowledgeDescriptorMap.get(privatekey)?.getFirstIndex()!])
+    this._keyPairing.set(privatekey,[this._globalKnowledgeDescriptorMap.get(privatekey)?.getFirstIndex()!,this._globalKnowledgeDescriptorMap.get(pubkey)?.getFirstIndex()!])
+  }
+
+  public getParmKeyPairing(paramskeys:string[]){
+    let flatParamskeys=paramskeys.toString()
+    return this._paramKeyPairing.get(flatParamskeys)
+  }
+
+  public getParmKeyPairingtest(){
+    return this._paramKeyPairing.size
+  }
+
+  public getIndexesParmKeyPairing(flatIndexes:string){
+    //let flatIndexes=indexes.toString()
+    return this._indexesParamKeyPairing.get(flatIndexes)
+  }
+  public setParmKeyPairing(params:string[],keys:string[]){
+    let mapkey=params.concat(keys)
+    let indexes:number[]=[]
+    for(let i=0;i<mapkey.length;i++){
+      indexes.push(this._globalKnowledgeDescriptorMap.get(mapkey[i]!)?.getFirstIndex()!)
+    }
+    let flatParamskeys=mapkey.toString()
+    let flatIndexes=indexes.toString()
+    this._paramKeyPairing.set(flatParamskeys,flatIndexes)
+  }
+
+  public setIndexesParmKeyPairing(indexes:number[]){
+    let flatIndexes=indexes.toString()
+    this._indexesParamKeyPairing.set(flatIndexes,true)
+  }
 
   public printIndexMap() {
     let tempArray = []
@@ -247,4 +315,30 @@ export class KnowledgeClass {
     }
     return tempArray
   }
+
+  public printKeypair(){
+    let tempArray = []
+      for (let key of this._keyPairing.keys()) {
+        tempArray.push("[" + key.concat(this._keyPairing.get(key)?.toString()!) + "]")
+      }
+      return tempArray
+  }
+
+  public printIndexesParmKeyPairing(){
+    let tempArray = []
+      for (let key of this._indexesParamKeyPairing.keys()) {
+        tempArray.push("[" + key.toString() +", "+ (this._indexesParamKeyPairing.get(key)!).toString() + "]" )
+      }
+      return tempArray
+  }
+
+  public printParmKeyPairing(){
+    let tempArray = []
+    for (let key of this._paramKeyPairing.keys()) {
+      tempArray.push("[" + key.toString() +", "+ (this._paramKeyPairing.get(key)!).toString() + "]" )
+    }
+    return tempArray
+  }
+
+ 
 }  

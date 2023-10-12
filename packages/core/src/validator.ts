@@ -30,6 +30,11 @@ import { sameFunctionDefParamCardinality } from "./validation/functions/same-fun
 import { correctFunctionInvocationParams } from "./validation/functions/correct-function-invocation-params"
 import { knowledgeIsDeclared } from "./validation/functions/knowledge-is-declared"
 import { knowledgeIsDeclaredForPrincipal } from "./validation/functions/knowledge-is-declared-for-principal"
+import { correctFunctionInvocationSecondaryParams } from "./validation/functions/correct-function-invocation-secondary-params"
+import { sameFunctionDefSecondaryParamCardinality } from "./validation/functions/same-function-def-secondary-param-number"
+import { correctSymmetricDecryption } from "./validation/functions/correct-symmetric-decryption"
+import { correctAsymmetricDecryption } from "./validation/functions/correct-asymmetric-decryption"
+import { correctSplit } from "./validation/functions/correct-split"
 //import { variadicParameterNotLast } from "./validation/functions/variadic-parameter-not-last"
 //import { sameFunctionDefParamCardinality } from "./validation/functions/same-function-def-param-number"
 
@@ -73,7 +78,12 @@ export function registerValidationChecks(services: KantServices): void {
             KantValidator.invertedOneWay,
             KantValidator.correctFunctionInvocationParams,
             KantValidator.knowledgeIsDeclared,
-            KantValidator.knowledgeIsDeclaredForPrincipal
+            KantValidator.knowledgeIsDeclaredForPrincipal,
+            KantValidator.sameFunctionDefSecondaryParamNumber,
+            KantValidator.correctFunctionInvocationSecondaryParams,
+            KantValidator.correctSymmetricDecrypt,
+            KantValidator.correctAsymmetricDecrypt,
+            KantValidator.correctSplit
         ]
     }
     registry.register(checks, validator)
@@ -163,6 +173,21 @@ export const KantValidator = {
     },
     knowledgeIsDeclaredForPrincipal: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
         knowledgeIsDeclaredForPrincipal.knowledgeIsDeclaredForPrincipal(globalDescription, protocol, accept)
+    },
+    sameFunctionDefSecondaryParamNumber: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
+        sameFunctionDefSecondaryParamCardinality.sameFunctionDefSecondaryParamCardinality(globalDescription, protocol, accept)
+    },
+    correctFunctionInvocationSecondaryParams: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
+        correctFunctionInvocationSecondaryParams.correctFunctionInvocationSecondaryParams(globalDescription, protocol, accept)
+    },
+    correctSymmetricDecrypt:(protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
+        correctSymmetricDecryption.correctSymmetricDecryption(globalDescription, protocol, accept)
+    },
+    correctAsymmetricDecrypt:(protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
+        correctAsymmetricDecryption.correctAsymmetricDecryption(globalDescription, protocol, accept)
+    },
+    correctSplit:(protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
+        correctSplit.correctSplit(globalDescription, protocol, accept)
     }
 }
 

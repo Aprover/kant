@@ -5,6 +5,7 @@ import { KnowledgeClass } from "../../KnowledgeClass";
 export const sameFunctionDefParamCardinality = {
     sameFunctionDefParamCardinality: (knowledgeClass: KnowledgeClass, protocol: Protocol, accept: ValidationAcceptor): void => {
         const functionDefParamCard= new Map<string, number>();
+        //defintition of fuctions in the same file
         streamAllContents(protocol)
             .filter(isFunctionDef)
             .forEach(kf => {
@@ -13,7 +14,7 @@ export const sameFunctionDefParamCardinality = {
                 functionDefParamCard.set(functionName,functionParamCard)
                 
             })
-        
+        //definition of the reference of the prelude functions used in the file
         streamAllContents(protocol)
             .filter(isKnowledgeFromFunction)
             .forEach(kff => {
@@ -28,7 +29,7 @@ export const sameFunctionDefParamCardinality = {
             .filter(isKnowledgeFromFunction)
             .forEach(i => {
                 if (!i.invoked.ref?.variadic) {
-                    if (functionDefParamCard.get(i.invoked.ref?.name!)) {
+                    if (functionDefParamCard.get(i.invoked.ref?.name!)!==undefined) {
                         if (i.args.args.length !== functionDefParamCard.get(i.invoked.ref?.name!)) {
                             accept(`error`, `"${i.invoked.ref?.name!}" requires "${functionDefParamCard.get(i.invoked.ref?.name!)}" arguments to be passed, but you provided "${i.args.args.length}" arguments.`, { node: i })
                             returnMap.set(i,false)

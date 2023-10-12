@@ -7,5 +7,8 @@ export const printBool = {
         accept('info', `globalKnowledge: ${knowledgeClass.printGlobalKnowledge()}`, { node: protocol })
         accept('info', `principals: ${knowledgeClass.printPrincipals()}`, { node: protocol })
         accept('info', `principals: ${knowledgeClass.printIndexMap()}`, { node: protocol })
+        accept('info', `Keypair: ${knowledgeClass.printKeypair()}`, { node: protocol })
+        accept('info', `ParmKeyPairing: ${knowledgeClass.printParmKeyPairing()}`, { node: protocol })
+        accept('info', `ParmKeyPairing: ${knowledgeClass.printIndexesParmKeyPairing()}`, { node: protocol })
     }
 }

@@ -7,6 +7,7 @@ principal Alice,Bob,Server
 
 Alice know{
     const priv_a: PrivateKey;
+    
     pub_a=PUB_GEN(priv_a);
 }
 
@@ -26,6 +27,7 @@ Alice->Server: pub_a
 Bob->Server:pub_b
 
 Server know{
+    fresh nz:Nonce;
     eas=PKE_ENC(kas) with pub_a;
     ebs=PKE_ENC(kbs) with pub_b;
 }
