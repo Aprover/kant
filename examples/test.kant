@@ -3,8 +3,28 @@ principal Alice,Bob
 Alice know{
     fresh na:Nonce;
     fresh pk:PrivateKey;
+    pbk=PUB_GEN(pk);
     const k:SymmetricKey;
     h=HASH(na);
-    ch=ENC(pk)with pk;
+    conc=CONCAT(h,pk,na);
+    enc_k=PKE_ENC(k)with pbk;
+    enc=ENC(h)with k;
+   
+    sum=CONCAT(enc,k,enc_k);
+     ki=PKE_ENC(k)with pbk;
+     g=HASH(ki);
+    //v=AEAD_ENC(na) with {k,ch};
+    //ch=ENC(conc[2])with k;
+    
 }
 
+Alice->Bob:sum
+
+Bob know{
+    fresh nb:Nonce;
+    const fake:SymmetricKey;
+    fresh bit:BitString;
+    retrive=SPLIT(sum);
+    f=DEC(retrive[0])with retrive[1];
+
+}

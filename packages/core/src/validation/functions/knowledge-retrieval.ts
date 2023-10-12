@@ -86,8 +86,7 @@ export const knowledgeRetrieval = {
                                 knowledgeClass.addNewGlobalKnowledge(knowledgeName, namesList, "BitString")
 
                                 let tempArr: string[] = []
-                                // TODO
-                                // parametri di CONCAT possono essere solo ref
+                               
                                 if (isKnowledgeFromFunctionArgsElements(kd.value.args)) {
                                     const functionParam = kd.value.args.args
                                     for (let i = 0; i < functionParam.length; i++) {
@@ -164,19 +163,45 @@ export const knowledgeRetrieval = {
                          ) {
                             if (isKnowledgeDefCustomName(kd.left)) {
                                 const knowledgeName = kd.left.name
+                                const functionSecondaryParam=kd.value.keys
                                 if (isKnowledgeFromFunctionArgsElements(kd.value.args)) {
                                     const functionParam = kd.value.args.args
-
+                                    let indexes:number[]=[]
                                     for (let i = 0; i < functionParam.length; i++) {
                                         let x = functionParam[i]
                                         if (isKnowledgeRef(x)) {
                                             knowledgeClass.addAliasGlobalKnowledge(knowledgeName, x.ref, namesList, returnType)
+                                            indexes.push(knowledgeClass.getGlobalKnowledgeDescriptorMap().get(x.ref)?.getFirstIndex()!)
                                         }
                                         if (isListAccess(x)) {
                                             let finalString = x.ref.concat("[" + x.index + "]")
                                             knowledgeClass.addAliasGlobalKnowledge(knowledgeName, finalString, namesList, returnType)
+                                            indexes.push(knowledgeClass.getGlobalKnowledgeDescriptorMap().get(finalString)?.getFirstIndex()!)
                                         }
                                     }
+                                    //let keyParam:string
+                                    for(let j=0;j<functionSecondaryParam.length;j++){
+                                        let keyParam=functionSecondaryParam[j]
+                                        if(isKnowledgeRef(keyParam)){
+                                            //keyParam=functionSecondaryParam.ref
+                                            
+                                            //ArrayParam.push(paramName)
+                                            
+                                            indexes.push(knowledgeClass.getGlobalKnowledgeDescriptorMap().get(keyParam.ref)?.getFirstIndex()!)
+                                            //knowledgeClass.setParmKeyPairing(ArrayParam,ArrayKeys)
+                                            
+                                        }
+                                        if(isListAccess(keyParam)){
+                                            let final =keyParam.ref.concat("[" + keyParam.index + "]")
+                                            
+                                            //ArrayParam.push(paramName)
+                                            
+                                            indexes.push(knowledgeClass.getGlobalKnowledgeDescriptorMap().get(final)?.getFirstIndex()!)
+                                            //knowledgeClass.setParmKeyPairing(ArrayParam,ArrayKeys)
+                                            
+                                        }
+                                    }
+                                    knowledgeClass.setIndexesParmKeyPairing(indexes)
                                     // TODO
                                     /* if (isKnowledgeList(functionParam)) {
                                             // warning 
@@ -200,47 +225,79 @@ export const knowledgeRetrieval = {
                             functionName === "PKE_DEC" ||
                             functionName === "AEAD_DEC"
                         ) {
+                                /*
                                 if (isKnowledgeFromFunctionArgsElements(kd.value.args)) {
                                     const functionParam = kd.value.args.args
-                                    let firstParam: string
+                                    //let firstParam: string
 
 
 
                                     if (isKnowledgeRef(functionParam[0])) {
-                                        firstParam = functionParam[0].ref
+                                        //firstParam = functionParam[0].ref
                                         if (isKnowledgeDefCustomName(kd.left)) {
                                             //accept('info', `(entrato nel ramo if desiderato) firstParam: ${firstParam}`, { node: protocol })
-                                            knowledgeClass.insertAliasDecrypt(firstParam, kd.left.name, namesList)
+                                            //knowledgeClass.insertAliasDecrypt(firstParam, kd.left.name, namesList)
                                         }
                                     }
                                     if (isListAccess(functionParam[0])) {
-                                        let finalString = functionParam[0].ref.concat("[" + functionParam[0].index + "]")
+                                        //let finalString = functionParam[0].ref.concat("[" + functionParam[0].index + "]")
                                         //accept('info', `(entrato nel ramo if desiderato) firstParam: ${finalString}`, { node: protocol })
-                                        if (isKnowledgeDefCustomName(kd.left))
-                                        knowledgeClass.insertAliasDecrypt(finalString, kd.left.name, namesList)                                        
+                                        if (isKnowledgeDefCustomName(kd.left)){
+
+                                        }
+                                        //knowledgeClass.insertAliasDecrypt(finalString, kd.left.name, namesList)                                        
                                     }
-                                }
+                                }*/
 
                                 if (isKnowledgeDefCustomName(kd.left)) {
                                     const knowledgeName = kd.left.name
                                     if (isKnowledgeFromFunctionArgsElements(kd.value.args)) {
                                         const functionParam = kd.value.args.args
-    
-                                        for (let i = 0; i < functionParam.length; i++) {
-                                            let x = functionParam[i]
+                                        const functionSecondaryParam=kd.value.keys
+                                        let paramName:string=""
+                                        let ArrayParam:string[]=[]
+                                        let ArrayKeys:string[]=[]
+                                        //for (let i = 0; i < functionParam.length; i++) {
+                                            let x = functionParam[0]
+                                            
                                             if (isKnowledgeRef(x)) {
+                                                paramName=x.ref
                                                 let firstIndex = knowledgeClass.getGlobalKnowledgeDescriptorMap().get(x.ref)?.getFirstIndex()
                                                 let desiredType = knowledgeClass.getGlobalKnowledgeDescriptorMap().get(knowledgeClass.getKnowledgebyIndex(firstIndex!, 0)!)?.getType()
                                                 knowledgeClass.addAliasGlobalKnowledge(knowledgeName, x.ref, namesList, desiredType!)
+                                                ArrayParam.push(paramName)
                                             }
                                             if (isListAccess(x)) {
-                                                let finalString = x.ref.concat("[" + x.index + "]")
-                                                let firstIndex = knowledgeClass.getGlobalKnowledgeDescriptorMap().get(x.ref)?.getFirstIndex()
+                                                paramName = x.ref.concat("[" + x.index + "]")
+                                                let firstIndex = knowledgeClass.getGlobalKnowledgeDescriptorMap().get(paramName)?.getFirstIndex()
                                                 let desiredType = knowledgeClass.getGlobalKnowledgeDescriptorMap().get(knowledgeClass.getKnowledgebyIndex(firstIndex!, 0)!)?.getType()
                                                 
-                                                knowledgeClass.addAliasGlobalKnowledge(knowledgeName, finalString, namesList, desiredType!)
+                                                knowledgeClass.addAliasGlobalKnowledge(knowledgeName, paramName, namesList, desiredType!)
+                                                ArrayParam.push(paramName)
                                             }
-                                        }
+                                            for(let j=0;j<functionSecondaryParam.length;j++){
+                                                let keyParam=functionSecondaryParam[j]
+                                                if(isKnowledgeRef(keyParam)){
+                                                    //keyParam=functionSecondaryParam.ref
+                                                    
+                                                    //ArrayParam.push(paramName)
+                                                    
+                                                    ArrayKeys.push(keyParam.ref!)
+                                                    //knowledgeClass.setParmKeyPairing(ArrayParam,ArrayKeys)
+                                                    
+                                                }
+                                                if(isListAccess(keyParam)){
+                                                    let final=keyParam.ref.concat("[" + keyParam.index + "]")
+                                                    
+                                                    //ArrayParam.push(paramName)
+                                                    
+                                                    ArrayKeys.push(final)
+                                                    //knowledgeClass.setParmKeyPairing(ArrayParam,ArrayKeys)
+                                                    
+                                                }
+                                            }
+                                            knowledgeClass.setParmKeyPairing(ArrayParam,ArrayKeys)
+                                        //}
                                         // TODO
                                         /* if (isKnowledgeList(functionParam)) {
                                                 // warning 
@@ -289,6 +346,18 @@ export const knowledgeRetrieval = {
                                 }
                             }
                             // for now, no set or list destructuring
+                        }
+                        if(functionName=== "PUB_GEN"){
+                            if (isKnowledgeDefCustomName(kd.left)) {
+                                let pubkey= kd.left.name
+                                let privkey:string=""
+                                if(isKnowledgeRef(kd.value.args.args[0]!)){
+                                     privkey=kd.value.args.args[0]!.ref
+                                }
+                                knowledgeClass.setKeyPairing(pubkey,privkey)
+
+                            }
+
                         }
                     }
                 
