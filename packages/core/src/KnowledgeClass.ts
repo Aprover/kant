@@ -32,6 +32,10 @@ export class KnowledgeClass {
       this._indexesParamKeyPairing= new Map<string,boolean>();
     }
     public getKeyPairing(key:string){
+      if(this._globalKnowledgeDescriptorMap.get(key)?.getIndexes()[1]!==0){
+        let firsind=this._globalKnowledgeDescriptorMap.get(key)?.getFirstIndex()
+        key=this._globalKnowledge[firsind!]?.get(0)!
+      }
       return this._keyPairing.get(key)
     }
 

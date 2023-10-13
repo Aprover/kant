@@ -1,4 +1,4 @@
-import { streamAllContents} from "langium"
+import { streamAllContents, ValidationAcceptor} from "langium"
 import {
     isCommunication,
     isFunctionDef,
@@ -21,7 +21,8 @@ import { List } from "../utility/list"
  * finally, it call the methods (createNodePointer+cloneNodePointer) of the shared object to populate a map that contains pointers to the contents of lists of knowledge 
  */
 export const knowledgeRetrieval = {
-    knowledgeRetrieval: (knowledgeClass: KnowledgeClass, protocol: Protocol): void => {
+    knowledgeRetrieval: (knowledgeClass: KnowledgeClass, protocol: Protocol ,
+        accept: ValidationAcceptor): void => {
 
         knowledgeClass.flushKnowledge()
         knowledgeClass.flushCardinality()
@@ -68,18 +69,42 @@ export const knowledgeRetrieval = {
                             returnType = kd.value.invoked.ref?.return.elements[0]?.type.type.ref?.name!
                         }
                         if (
-                            functionName === "MAC" ||
                             functionName === "PW_HASH" ||
-                            functionName === "SIGN" ||
                             functionName === "HASH" ||
                             functionName === "DF" ||
                             functionName === "PUB_GEN"
                         ) {
                             if (isKnowledgeDefCustomName(kd.left)) {
                                 const knowledgeName = kd.left.name
+                                const functionParam = kd.value.args.args
+                                
+                                if (isKnowledgeFromFunctionArgsElements(kd.value.args)) {
+                                    let x = functionParam[0]
+                                    if (isKnowledgeRef(x)) {
+                                        if(knowledgeClass.getGlobalKnowledgeDescriptorMap().get(x.ref)===undefined){
+                                            accept("error",`The param "${x.ref}" is invoked before been defined.`,{ node: x })
+                                        }
+                                    }
+                                    if (isListAccess(x)) {
+                                        let finalString = x.ref.concat("[" + x.index + "]")
+                                            if(knowledgeClass.getGlobalKnowledgeDescriptorMap().get(finalString)===undefined){
+                                                accept("error",`The param "${finalString}" is invoked before been defined.`,{ node: x })
+                                            }
+                                    }
+                                }
+                                
                                 knowledgeClass.addNewGlobalKnowledge(knowledgeName, namesList, returnType)
                             }
                         }
+                        /*if(functionName === "MAC" || functionName === "SIGN"){
+                            if (isKnowledgeDefCustomName(kd.left)) {
+                                const knowledgeName = kd.left.name
+                                knowledgeClass.addNewGlobalKnowledge(knowledgeName, namesList, returnType)
+                            }
+                        }*/
+
+
+
                         if (functionName === "CONCAT") {
                             if (isKnowledgeDefCustomName(kd.left)) {
                                 const knowledgeName = kd.left.name
@@ -92,11 +117,17 @@ export const knowledgeRetrieval = {
                                     for (let i = 0; i < functionParam.length; i++) {
                                         let x = functionParam[i]
                                         if (isKnowledgeRef(x)) {
+                                            if(knowledgeClass.getGlobalKnowledgeDescriptorMap().get(x.ref)===undefined){
+                                                accept("error",`The param "${x.ref}" is invoked before been defined.`,{ node: x })
+                                            }
                                             tempArr.push(x.ref)
                                         
                                         }
                                         if (isListAccess(x)) {
                                             let finalString = x.ref.concat("[" + x.index + "]")
+                                            if(knowledgeClass.getGlobalKnowledgeDescriptorMap().get(finalString)===undefined){
+                                                accept("error",`The param "${finalString}" is invoked before been defined.`,{ node: x })
+                                            }
                                             tempArr.push(finalString)
                                         }
                                     }
@@ -126,11 +157,17 @@ export const knowledgeRetrieval = {
                                     for (let i = 0; i < functionParam.length; i++) {
                                         let x = functionParam[i]
                                         if (isKnowledgeRef(x)) {
+                                            if(knowledgeClass.getGlobalKnowledgeDescriptorMap().get(x.ref)===undefined){
+                                                accept("error",`The param "${x.ref}" is invoked before been defined.`,{ node: x })
+                                            }
                                             knowledgeClass.addAliasGlobalKnowledge(knowledgeSplit, x.ref, namesList, returnType)
                                             knowledgeClass.cloneNodePoiter(knowledgeSplit, x.ref, namesList)
                                         }
                                         if (isListAccess(x)) {
                                             let finalString = x.ref.concat("[" + x.index + "]")
+                                            if(knowledgeClass.getGlobalKnowledgeDescriptorMap().get(finalString)===undefined){
+                                                accept("error",`The param "${finalString}" is invoked before been defined.`,{ node: x })
+                                            }
                                             knowledgeClass.addAliasGlobalKnowledge(knowledgeSplit, finalString, namesList, returnType)
                                             knowledgeClass.cloneNodePoiter(knowledgeSplit, x.ref, namesList)
                                         }
@@ -159,7 +196,10 @@ export const knowledgeRetrieval = {
                         if (
                             functionName === "ENC" ||
                             functionName === "PKE_ENC" ||
-                            functionName === "AEAD_ENC"
+                            functionName === "AEAD_ENC" ||
+                            functionName === "MAC" ||
+                             functionName === "SIGN"
+
                          ) {
                             if (isKnowledgeDefCustomName(kd.left)) {
                                 const knowledgeName = kd.left.name
@@ -170,11 +210,17 @@ export const knowledgeRetrieval = {
                                     for (let i = 0; i < functionParam.length; i++) {
                                         let x = functionParam[i]
                                         if (isKnowledgeRef(x)) {
+                                            if(knowledgeClass.getGlobalKnowledgeDescriptorMap().get(x.ref)===undefined){
+                                                accept("error",`The param "${x.ref}" is invoked before been defined.`,{ node: x })
+                                            }
                                             knowledgeClass.addAliasGlobalKnowledge(knowledgeName, x.ref, namesList, returnType)
                                             indexes.push(knowledgeClass.getGlobalKnowledgeDescriptorMap().get(x.ref)?.getFirstIndex()!)
                                         }
                                         if (isListAccess(x)) {
                                             let finalString = x.ref.concat("[" + x.index + "]")
+                                            if(knowledgeClass.getGlobalKnowledgeDescriptorMap().get(finalString)===undefined){
+                                                accept("error",`The param "${finalString}" is invoked before been defined.`,{ node: x })
+                                            }
                                             knowledgeClass.addAliasGlobalKnowledge(knowledgeName, finalString, namesList, returnType)
                                             indexes.push(knowledgeClass.getGlobalKnowledgeDescriptorMap().get(finalString)?.getFirstIndex()!)
                                         }
@@ -184,8 +230,10 @@ export const knowledgeRetrieval = {
                                         let keyParam=functionSecondaryParam[j]
                                         if(isKnowledgeRef(keyParam)){
                                             //keyParam=functionSecondaryParam.ref
-                                            
-                                            //ArrayParam.push(paramName)
+                                            /*
+                                            if(knowledgeClass.getGlobalKnowledgeDescriptorMap().get(keyParam.ref)===undefined){
+                                                accept("error",`The param "${keyParam.ref}" is invoked before been defined.`,{ node: keyParam})
+                                            }*/
                                             
                                             indexes.push(knowledgeClass.getGlobalKnowledgeDescriptorMap().get(keyParam.ref)?.getFirstIndex()!)
                                             //knowledgeClass.setParmKeyPairing(ArrayParam,ArrayKeys)
@@ -193,8 +241,10 @@ export const knowledgeRetrieval = {
                                         }
                                         if(isListAccess(keyParam)){
                                             let final =keyParam.ref.concat("[" + keyParam.index + "]")
-                                            
-                                            //ArrayParam.push(paramName)
+                                            /*
+                                            if(knowledgeClass.getGlobalKnowledgeDescriptorMap().get(final)===undefined){
+                                                accept("error",`The param "${final}" is invoked before been defined.`,{ node: keyParam})
+                                            }*/
                                             
                                             indexes.push(knowledgeClass.getGlobalKnowledgeDescriptorMap().get(final)?.getFirstIndex()!)
                                             //knowledgeClass.setParmKeyPairing(ArrayParam,ArrayKeys)
@@ -223,7 +273,9 @@ export const knowledgeRetrieval = {
                         if (
                             functionName === "DEC" ||
                             functionName === "PKE_DEC" ||
-                            functionName === "AEAD_DEC"
+                            functionName === "AEAD_DEC" ||
+                            functionName === "SIGN_VERIF" ||
+                            functionName === "MAC_VERIF"
                         ) {
                                 /*
                                 if (isKnowledgeFromFunctionArgsElements(kd.value.args)) {
@@ -262,6 +314,10 @@ export const knowledgeRetrieval = {
                                             
                                             if (isKnowledgeRef(x)) {
                                                 paramName=x.ref
+                                                /*
+                                                if(knowledgeClass.getGlobalKnowledgeDescriptorMap().get(x.ref)===undefined){
+                                                    accept("error",`The param "${x.ref}" is invoked before been defined.`,{ node: x })
+                                                }*/
                                                 let firstIndex = knowledgeClass.getGlobalKnowledgeDescriptorMap().get(x.ref)?.getFirstIndex()
                                                 let desiredType = knowledgeClass.getGlobalKnowledgeDescriptorMap().get(knowledgeClass.getKnowledgebyIndex(firstIndex!, 0)!)?.getType()
                                                 knowledgeClass.addAliasGlobalKnowledge(knowledgeName, x.ref, namesList, desiredType!)
@@ -269,6 +325,10 @@ export const knowledgeRetrieval = {
                                             }
                                             if (isListAccess(x)) {
                                                 paramName = x.ref.concat("[" + x.index + "]")
+                                                /*
+                                                if(knowledgeClass.getGlobalKnowledgeDescriptorMap().get(paramName)===undefined){
+                                                    accept("error",`The param "${paramName}" is invoked before been defined.`,{ node: x})
+                                                }*/
                                                 let firstIndex = knowledgeClass.getGlobalKnowledgeDescriptorMap().get(paramName)?.getFirstIndex()
                                                 let desiredType = knowledgeClass.getGlobalKnowledgeDescriptorMap().get(knowledgeClass.getKnowledgebyIndex(firstIndex!, 0)!)?.getType()
                                                 
@@ -279,8 +339,10 @@ export const knowledgeRetrieval = {
                                                 let keyParam=functionSecondaryParam[j]
                                                 if(isKnowledgeRef(keyParam)){
                                                     //keyParam=functionSecondaryParam.ref
-                                                    
-                                                    //ArrayParam.push(paramName)
+                                                    /*
+                                                    if(knowledgeClass.getGlobalKnowledgeDescriptorMap().get(keyParam.ref)===undefined){
+                                                        accept("error",`The param "${keyParam.ref}" is invoked before been defined.`,{ node: keyParam})
+                                                    }*/
                                                     
                                                     ArrayKeys.push(keyParam.ref!)
                                                     //knowledgeClass.setParmKeyPairing(ArrayParam,ArrayKeys)
@@ -288,8 +350,10 @@ export const knowledgeRetrieval = {
                                                 }
                                                 if(isListAccess(keyParam)){
                                                     let final=keyParam.ref.concat("[" + keyParam.index + "]")
-                                                    
-                                                    //ArrayParam.push(paramName)
+                                                    /*
+                                                    if(knowledgeClass.getGlobalKnowledgeDescriptorMap().get(final)===undefined){
+                                                        accept("error",`The param "${final}" is invoked before been defined.`,{ node: keyParam})
+                                                    }*/
                                                     
                                                     ArrayKeys.push(final)
                                                     //knowledgeClass.setParmKeyPairing(ArrayParam,ArrayKeys)
@@ -297,22 +361,7 @@ export const knowledgeRetrieval = {
                                                 }
                                             }
                                             knowledgeClass.setParmKeyPairing(ArrayParam,ArrayKeys)
-                                        //}
-                                        // TODO
-                                        /* if (isKnowledgeList(functionParam)) {
-                                                // warning 
-                                            } 
-                                            if (isKnowledgeSet(functionParam)) {
-                                                // warning 
-                                            }  */
-                                        // TODO
-                                        // PKE_ENC E ANCHE LE FUNZIONI DI DECIFRATURA può prendere solo un parametro (riferimento)
-                                        /* if (isKnowledgeRef(functionParam)) {
-                                            const paramName = functionParam.access
-                                            if (paramName[0]) {
-                                                knowledgeClass.addAliasGlobalKnowledge(knowledgeName, paramName[0])
-                                            }
-                                        } */
+                                       
                                     }
                                 }
                             }

@@ -21,7 +21,7 @@ export const listAccesPointsToList = {
                     }
                 }
                 if (!isList) {
-                    accept('error', `List access should point to a list, ${listAccessReference} does not.`, { node: la })
+                    accept('error', `List access should point to a list, the '${listAccessReference}' reference is not a list`, { node: la })
                 }
             })
     }

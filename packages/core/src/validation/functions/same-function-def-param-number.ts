@@ -20,7 +20,12 @@ export const sameFunctionDefParamCardinality = {
             .forEach(kff => {
                 if (kff.invoked) {
                     let functionName = kff.invoked.ref?.name
-                    let functionParamCard = kff.invoked.ref?.params.length
+                    //let functionParamCard = kff.invoked.ref?.params.length
+                    let functionParamCard=0
+                    //accept(`error`, `"arg: ${kff.invoked.ref?.key?.elements.length}" `, { node: kff })
+                    if(kff.invoked.ref?.params.length!==undefined){
+                        functionParamCard = kff.invoked.ref?.params.length
+                    }
                     functionDefParamCard.set(functionName!,functionParamCard!)
                 }
             })
@@ -30,7 +35,9 @@ export const sameFunctionDefParamCardinality = {
             .forEach(i => {
                 if (!i.invoked.ref?.variadic) {
                     if (functionDefParamCard.get(i.invoked.ref?.name!)!==undefined) {
+                        //accept(`error`, `"arg: ${i.args.args.length}" `, { node: i })
                         if (i.args.args.length !== functionDefParamCard.get(i.invoked.ref?.name!)) {
+                            
                             accept(`error`, `"${i.invoked.ref?.name!}" requires "${functionDefParamCard.get(i.invoked.ref?.name!)}" arguments to be passed, but you provided "${i.args.args.length}" arguments.`, { node: i })
                             returnMap.set(i,false)
                         }else{

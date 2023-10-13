@@ -18,54 +18,56 @@ export const correctFunctionInvocationSecondaryParams = {
                         i.invoked.ref?.key?.elements.forEach(key => {
                             correctKeysTypes.push(key.type.type.ref?.name!)
                         })
-
+                       
                         let paramKeysNames = i.keys
-                        let k = 0
-                        paramKeysNames.filter(isKnowledgeRef).forEach(pk => {
-                            if (
-                                knowledgeClass.getGlobalKnowledgeDescriptorMap().get(pk.ref)?.getType() !==
-                                    correctKeysTypes[k] &&
-                                correctKeysTypes[k] !== "BitString"
-                            ) {
-                                accept(
-                                    "error",
-                                    `You used an incorrect keys type: "${knowledgeClass
-                                        .getGlobalKnowledgeDescriptorMap()
-                                        .get(pk.ref)
-                                        ?.getType()}", while the invoked function requires a key of type "${
-                                        correctKeysTypes[k]
-                                    }."`,
-                                    { node: i }
-                                )
+                        
+                        for(let h=0;h<paramKeysNames.length;h++){
+                            let iter=paramKeysNames[h]!
+                            //accept("error",`You used an incorrect h: "${correctKeysTypes[h]}"`,{ node: i })
+                            if(isKnowledgeRef(iter)){
+                                
+                                if (
+                                    knowledgeClass.getGlobalKnowledgeDescriptorMap().get(iter.ref)?.getType() !==
+                                        correctKeysTypes[h] &&
+                                    correctKeysTypes[h] !== "BitString"
+                                ) {
+                                    accept(
+                                        "error",
+                                        `You used an incorrect keys type: "${knowledgeClass
+                                            .getGlobalKnowledgeDescriptorMap()
+                                            .get(iter.ref)
+                                            ?.getType()}", while the invoked function requires a key of type "${
+                                            correctKeysTypes[h]
+                                        }."`,
+                                        { node: iter }
+                                    )
+                                    
+                                }
                             }
-                           
-
-
-                            k++
-                        })
-
-                        let h = 0
-                        paramKeysNames.filter(isListAccess).forEach(la => {
-                            if (
-                                knowledgeClass
-                                    .getGlobalKnowledgeDescriptorMap()
-                                    .get(la.ref.concat("[" + la.index + "]"))
-                                    ?.getType() !== correctKeysTypes[h] &&
-                                correctKeysTypes[h] !== "BitString"
-                            ) {
-                                accept(
-                                    "error",
-                                    `You used an incorrect param type: "${knowledgeClass
+                            if(isListAccess(iter)){
+                                
+                                if (
+                                    knowledgeClass
                                         .getGlobalKnowledgeDescriptorMap()
-                                        .get(la.ref.concat("[" + la.index + "]"))
-                                        ?.getType()}", while the invoked function requires a parameter of type "${
-                                        correctKeysTypes[h]
-                                    }."`,
-                                    { node: i }
-                                )
+                                        .get(iter.ref.concat("[" + iter.index + "]"))
+                                        ?.getType() !== correctKeysTypes[h] &&
+                                    correctKeysTypes[h] !== "BitString"
+                                ) {
+                                    accept(
+                                        "error",
+                                        `You used an incorrect param type: "${knowledgeClass
+                                            .getGlobalKnowledgeDescriptorMap()
+                                            .get(iter.ref.concat("[" + iter.index + "]"))
+                                            ?.getType()}", while the invoked function requires a parameter of type "${
+                                            correctKeysTypes[h]
+                                        }."`,
+                                        { node: iter }
+                                    )
+                                    
+                                }
                             }
-                            h++
-                        })
+                        }
+                       
                         /*
                         paramNames.filter(isKnowledgeFromFunction).forEach(kff => {
                             if (getContainerOfType(kff, isPropertyDef) === undefined) {

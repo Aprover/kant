@@ -14,6 +14,7 @@ export const correctSplit = {
                 if(i.invoked.ref?.name==="SPLIT"){
                     let param = i.args.args[0]!
                     let sizePointers:number=0
+                    
                     if (isKnowledgeRef(param)) {
                         //knowledgeClass.addAliasGlobalKnowledge(knowledgeName, x.ref, namesList, returnType)
                         let listIndex=knowledgeClass.getGlobalKnowledgeDescriptorMap().get(param.ref)?.getFirstIndex()
@@ -26,6 +27,7 @@ export const correctSplit = {
                         let name=knowledgeClass.getKnowledgebyIndex(listIndex!,0)
                         sizePointers=knowledgeClass.getListNodePointerKnowledge().get(name!)?.length!
                         //knowledgeClass.addAliasGlobalKnowledge(knowledgeName, finalString, namesList, returnType)
+                        //accept("error",`The 'SPLIT' function size "${sizePointers}"`,{ node: i })
                     }
                    
                     

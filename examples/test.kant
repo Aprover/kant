@@ -1,20 +1,35 @@
 principal Alice,Bob
 
+
+Bob know{
+    fresh pk1:PrivateKey;
+    pbkl=PUB_GEN(pk1);
+    fresh bit:BitString;
+    j=SIGN(bit)with pk1;
+    test=CONCAT(j,pbkl);
+}
+
+Bob -> Alice:test
+
 Alice know{
     fresh na:Nonce;
     fresh pk:PrivateKey;
     pbk=PUB_GEN(pk);
     const k:SymmetricKey;
+    const k1:SymmetricKey;
+    const auth:BitString;
     h=HASH(na);
     conc=CONCAT(h,pk,na);
     enc_k=PKE_ENC(k)with pbk;
-    enc=ENC(h)with k;
-   
-    sum=CONCAT(enc,k,enc_k);
-     ki=PKE_ENC(k)with pbk;
-     g=HASH(ki);
+    enc=AEAD_ENC(h)with {k,auth};
+    j1=SIGN(na)with pk;
+    resi=SPLIT(test);
+    
+     dec=AEAD_DEC(enc)with {k,auth};
+     s=SIGN_VERIF(resi[0]) with resi[1];
+     sum=CONCAT(enc,k,enc_k,j1,auth);
     //v=AEAD_ENC(na) with {k,ch};
-    //ch=ENC(conc[2])with k;
+    //ch=ENC(conc[3])with k;
     
 }
 
@@ -23,8 +38,12 @@ Alice->Bob:sum
 Bob know{
     fresh nb:Nonce;
     const fake:SymmetricKey;
-    fresh bit:BitString;
+    const loc:BitString;
+    
+    //pbk1=PUB_GEN(pk1);
     retrive=SPLIT(sum);
-    f=DEC(retrive[0])with retrive[1];
+    f=AEAD_DEC(retrive[0])with {retrive[1],nb};
+    
+    
 
 }

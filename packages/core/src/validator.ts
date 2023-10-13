@@ -35,6 +35,9 @@ import { sameFunctionDefSecondaryParamCardinality } from "./validation/functions
 import { correctSymmetricDecryption } from "./validation/functions/correct-symmetric-decryption"
 import { correctAsymmetricDecryption } from "./validation/functions/correct-asymmetric-decryption"
 import { correctSplit } from "./validation/functions/correct-split"
+import { correctSignVerif } from "./validation/functions/correct-sign-verif"
+import { correctMac } from "./validation/functions/correct-mac"
+import { correctSymmetricAuthDecryption } from "./validation/functions/correct-symmetric-auth-decryption"
 //import { variadicParameterNotLast } from "./validation/functions/variadic-parameter-not-last"
 //import { sameFunctionDefParamCardinality } from "./validation/functions/same-function-def-param-number"
 
@@ -83,7 +86,10 @@ export function registerValidationChecks(services: KantServices): void {
             KantValidator.correctFunctionInvocationSecondaryParams,
             KantValidator.correctSymmetricDecrypt,
             KantValidator.correctAsymmetricDecrypt,
-            KantValidator.correctSplit
+            KantValidator.correctSplit,
+            KantValidator.correctSignVerif,
+            KantValidator.correctMac,
+            KantValidator.correctSymmetricAuthDecryption
         ]
     }
     registry.register(checks, validator)
@@ -93,8 +99,9 @@ export function registerValidationChecks(services: KantServices): void {
  * Implementation of custom validations.
  */
 export const KantValidator = {
-    knowledgeRetrieval: (protocol: Protocol) => {
-        knowledgeRetrieval.knowledgeRetrieval(globalDescription, protocol)
+    knowledgeRetrieval: (protocol: Protocol,
+        accept: ValidationAcceptor) => {
+        knowledgeRetrieval.knowledgeRetrieval(globalDescription, protocol,accept)
     },
     printBool: (protocol: Protocol, accept: ValidationAcceptor) => {
         printBool.printBool(globalDescription, protocol, accept)
@@ -188,6 +195,15 @@ export const KantValidator = {
     },
     correctSplit:(protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
         correctSplit.correctSplit(globalDescription, protocol, accept)
+    },
+    correctSignVerif:(protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
+        correctSignVerif.correctSignVerif(globalDescription, protocol, accept)
+    },
+    correctMac:(protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
+        correctMac.correctMac(globalDescription, protocol, accept)
+    },
+    correctSymmetricAuthDecryption:(protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
+        correctSymmetricAuthDecryption.correctSymmetricAuthDecryption(globalDescription, protocol, accept)
     }
 }
 

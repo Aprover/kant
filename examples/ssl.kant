@@ -46,7 +46,7 @@ Alice -> Bob : enc_cert_sign
 Bob know {
     dec_cert_sign = DEC(enc_cert_sign) with dec_kab;
     split_cert_sign = SPLIT(dec_cert_sign);
-    verification = SIGNVERIF(split_cert_sign[1]) with  pub_key_a;
+    verification = SIGN_VERIF(split_cert_sign[1]) with  pub_key_a;
 }
 
 check nb, dec_nb should be equal
