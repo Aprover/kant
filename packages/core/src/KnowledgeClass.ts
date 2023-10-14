@@ -18,6 +18,7 @@ export class KnowledgeClass {
     private _keyPairing:Map<string,number[]>;
     private _paramKeyPairing:Map<string,string>;
     private _indexesParamKeyPairing:Map<string,boolean>;
+    private _ephemeralKey: Map<string,string>;
 
     constructor() {
       this._globalKnowledge = new Array<List>;
@@ -27,6 +28,7 @@ export class KnowledgeClass {
       this._functionCardinalityMap = new Map<KnowledgeFromFunction, boolean>();
       this._globalKnowledgeDescriptorMap = new Map<string, KnowledgeNodeDescriptor>();
       this._functionSecondaryCardinalityMap = new Map<KnowledgeFromFunction, boolean>();
+      this._ephemeralKey=new Map<string,string>();
       this._keyPairing=new Map<string,number[]>();
       this._paramKeyPairing=new Map<string,string>();
       this._indexesParamKeyPairing= new Map<string,boolean>();
@@ -100,6 +102,32 @@ export class KnowledgeClass {
         }
       }
 	  return -1
+    }
+
+    
+
+    public addAliasDiffieHellman(arrayParam:string[],name: string, principalsList: List, type: string){
+      //this._exponentiation.get(name)
+      let firstparm=this._globalKnowledgeDescriptorMap.get(arrayParam[0]!)?.getFirstIndex()
+      let secondparm=this._globalKnowledgeDescriptorMap.get(arrayParam[1]!)?.getFirstIndex()
+      let paramIndex1=[]
+      let paramIndex2=[]
+      paramIndex1.push(firstparm)
+      paramIndex1.push(secondparm)
+      paramIndex2.push(secondparm)
+      paramIndex2.push(firstparm)
+      let mapkey1=paramIndex1.toString()
+      let mapkey2=paramIndex2.toString()
+      if(this._ephemeralKey.get(mapkey1)!==undefined) {
+        this.addAliasGlobalKnowledge(name,this._ephemeralKey.get(mapkey1)!,principalsList,type)
+      }else if(this._ephemeralKey.get(mapkey2) !==undefined){
+        this.addAliasGlobalKnowledge(name,this._ephemeralKey.get(mapkey2)!,principalsList,type)
+      }else{
+        this._ephemeralKey.set(mapkey1,name)
+        this.addNewGlobalKnowledge(name,principalsList,type)
+      }
+      //if(this._ephemeralKeyPairing.get(name))
+      
     }
 
     public addNodePointer(name: string, index: number){
@@ -203,6 +231,7 @@ export class KnowledgeClass {
     this._keyPairing=new Map<string, number[]>();
     this._paramKeyPairing=new Map<string,string>();
     this._indexesParamKeyPairing= new Map<string,boolean>();
+    this._ephemeralKey=new Map<string,string>();
   }
 
   public flushCardinality(){

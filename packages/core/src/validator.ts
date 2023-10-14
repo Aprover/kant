@@ -3,7 +3,7 @@ import { Protocol } from "./generated/ast"
 import { type KantAstType } from "./generated/ast"
 import type { KantServices } from "./module"
 import { knowledgeRetrieval } from "./validation/functions/knowledge-retrieval"
-import { printBool } from "./validation/functions/print-bool"
+//import { printBool } from "./validation/functions/print-bool"
 import { KnowledgeClass } from "./KnowledgeClass" 
 //import { debug } from "./validation/functions/debug"
 import { uniqueFunctionNames } from "./validation/functions/unique-function-names"
@@ -55,7 +55,7 @@ export function registerValidationChecks(services: KantServices): void {
     const checks: ValidationChecks<KantAstType> = {
         Protocol: [
             KantValidator.knowledgeRetrieval,
-            KantValidator.printBool,
+            //KantValidator.printBool,
             //KantValidator.debug,           
             KantValidator.uniqueKnowledgeNames,
             KantValidator.uniquePrincipalNames,
@@ -102,10 +102,10 @@ export const KantValidator = {
     knowledgeRetrieval: (protocol: Protocol,
         accept: ValidationAcceptor) => {
         knowledgeRetrieval.knowledgeRetrieval(globalDescription, protocol,accept)
-    },
+    },/*
     printBool: (protocol: Protocol, accept: ValidationAcceptor) => {
         printBool.printBool(globalDescription, protocol, accept)
-    },/*
+    },
     debug: (protocol: Protocol, accept: ValidationAcceptor) => {
         debug.debug(protocol, accept)
     },*/

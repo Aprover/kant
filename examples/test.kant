@@ -39,11 +39,35 @@ Bob know{
     fresh nb:Nonce;
     const fake:SymmetricKey;
     const loc:BitString;
+    const g1:Group;
+    fresh exp1:PrivateKey;
     
+    gexp1=EXP(g1,exp1);
+    mess1=CONCAT(g1,gexp1);
     //pbk1=PUB_GEN(pk1);
     retrive=SPLIT(sum);
-    f=AEAD_DEC(retrive[0])with {retrive[1],nb};
+    f=AEAD_DEC(retrive[0])with {retrive[1],retrive[4]};
+
+
+}
+
+Bob -> Alice:mess1
+
+Alice know{
+    mess_rec=SPLIT(mess1);
+    fresh exp2:PrivateKey;
     
-    
+    rec_ga=EXP(mess_rec[0],exp2);
+    key_ab=DF(mess_rec[1],rec_ga);
+    test_df=ENC(na) with key_ab;
+    mess2=CONCAT(rec_ga,test_df);
+}
+
+Alice -> Bob:mess2
+
+Bob know{
+    fresh symm:SymmetricKey;
+    key_ba=DF(mess2[0],gexp1);
+    dec_test_df=DEC(mess2[1])with key_ba;
 
 }

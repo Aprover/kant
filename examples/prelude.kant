@@ -13,8 +13,9 @@ function HKDF(salt: Nonce, ikm: SymmetricKey, info: BitString) -> [ k1: Symmetri
 function PW_HASH(value: BitString) -> [ pw_hash: Digest ] one way
 function PUB_GEN(private:PrivateKey) -> [ pub_gen:PublicKey ] one way
 
-function DF(base:Group, exp:PrivateKey) -> [ df:Group ] one way
-property forall a:PrivateKey, b:PrivateKey, g:Group | DF(DF(g,b), a) equals DF(DF(g,a), b)
+function EXP(base:Group, exp:PrivateKey) -> [ df:Group ] one way
+function DF(exp1:Group,exp2:Group)->[ key:SymmetricKey ] one way
+property forall a:PrivateKey, b:PrivateKey, g:Group | DF(EXP(g,b),EXP(g,a)) equals DF(EXP(g,a),EXP(g,b))
 
 function ENC(content:BitString) with k:SymmetricKey -> [ enc:Ciphertext ]
 function DEC(enc:Ciphertext) with k:SymmetricKey -> [ content:BitString ]
@@ -27,7 +28,6 @@ property forall x:BitString, k:SymmetricKey, auth:BitString | AEAD_DEC(AEAD_ENC(
 function PKE_ENC(content: BitString) with k: PublicKey -> [ pke_enc: Ciphertext ]
 function PKE_DEC(pke_enc: Ciphertext) with k: PrivateKey -> [ content: BitString ]
 property forall x: BitString, k: PrivateKey | PKE_DEC(PKE_ENC(x) with PUB_GEN(k)) with k -> [ x ]
-
 
 function SIGN(message: BitString) with k: PrivateKey -> [ signed: Signature ]
 function SIGN_VERIF(signed: Signature) with k: PublicKey -> [ message: BitString ]
