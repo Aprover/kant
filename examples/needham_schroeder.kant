@@ -1,58 +1,64 @@
-// There is a better written version of this protocol
-
 principal Alice, Bob
 
 Alice know {
-	const a, 
-	fresh na, 
-	ga = PUB_GEN(a) 
+    state sending_puba;
+
+    const priva:PrivateKey;
+    puba = PUB_GEN(priva);
 }
+
+Alice -> Bob : puba
 
 Bob know {
-	const b, 
-	fresh nb,
-	gb = PUB_GEN(b) 
+    state waiting_puba;
+
+    const privb: PrivateKey;
+    
+    pubb = PUB_GEN(privb);
 }
 
-Alice -> Bob: ga 
 
-Bob -> Alice: gb 
+Bob -> Alice : pubb
 
 Alice know {
-	e1 = PKE_ENC(na) with gb 
+    state waiting_pubb;
+    transition sending_puba=>waiting_pubb;
+
+    fresh na: Nonce; 
+    enc_na = PKE_ENC(na) with pubb;
 }
 
-Alice -> Bob: e1 
+Alice -> Bob : enc_na
 
 Bob know {
-	na_bob = PKE_DEC(e1) with b, 
-	message_to_send_to_Alice = CONCAT(na_bob, nb), 
-	e2 = PKE_ENC(message_to_send_to_Alice) with ga 
+    state waiting_enc_na;
+    transition waiting_puba=>waiting_enc_na;
+
+    fresh nb: Nonce;
+    dec_na = PKE_DEC(enc_na) with privb;
+    nb_na = CONCAT(nb, dec_na);
+    enc_nb_na = PKE_ENC(nb_na) with puba;
 }
 
-Bob -> Alice: e2
+Bob -> Alice : enc_nb_na
 
 Alice know {
-	m2 = PKE_DEC(e2) with a,
-	//[na_bob_alice, nb_alice] = SPLIT(m2),
-    splitted = SPLIT(m2),
-	na_bob_alice = splitted[0],
-	nb_alice = splitted[1],
-	nb_alice_pub_key = PUB_GEN(nb_alice),
-	e3 = PKE_ENC(gb) with nb_alice_pub_key
+    state waiting_enc_na_nb;
+    transition waiting_pubb => waiting_enc_na_nb;
+
+    dec_na_nb = PKE_DEC(enc_nb_na) with priva;
+    rec_na_nb = SPLIT(dec_na_nb);
+    enc_nb = PKE_ENC(rec_na_nb[1]) with pubb;
 }
 
-check na, na_bob_alice should be equal
-
-Alice -> Bob: e3
+Alice -> Bob : enc_nb
 
 Bob know {
-	nb_alice_bob = PKE_DEC(e3) with nb_alice
+    state waiting_enc_nb;
+    transition waiting_enc_na=>waiting_enc_nb;
+
+    dec_nb = PKE_DEC(enc_nb) with privb;
 }
 
-check nb, nb_alice_bob should be equal
-
-check Bob should authenticate Alice with e1
-check Alice should authenticate Bob with e2
-check only Alice, Bob should know na
-check only Alice, Bob should know nb
+check nb, dec_nb should be equal
+check Bob should authenticate Alice with dec_nb

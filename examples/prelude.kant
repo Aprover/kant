@@ -14,8 +14,8 @@ function PW_HASH(value: BitString) -> [ pw_hash: Digest ] one way
 function PUB_GEN(private:PrivateKey) -> [ pub_gen:PublicKey ] one way
 
 function EXP(base:Group, exp:PrivateKey) -> [ df:Group ] one way
-function DF(exp1:Group,exp2:Group)->[ key:SymmetricKey ] one way
-property forall a:PrivateKey, b:PrivateKey, g:Group | DF(EXP(g,b),EXP(g,a)) equals DF(EXP(g,a),EXP(g,b))
+function DF(g:Group,exp1:PrivateKey)->[ key:SymmetricKey ] one way
+property forall a:PrivateKey, b:PrivateKey, g:Group | DF(EXP(g,b),a) equals DF(EXP(g,a),b)
 
 function ENC(content:BitString) with k:SymmetricKey -> [ enc:Ciphertext ]
 function DEC(enc:Ciphertext) with k:SymmetricKey -> [ content:BitString ]

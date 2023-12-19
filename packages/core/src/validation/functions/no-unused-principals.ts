@@ -2,9 +2,10 @@ import { streamAllContents, type MaybePromise, type ValidationAcceptor } from "l
 import {
     isAuthenticationCheck,
     isCommunication,
-    isKnowledgeCheck,
+    isConfidentialityCheck,
     isPrincipal,
     isPrincipalKnowledgeDef,
+    isSharedKnowledgeDef,
     type Protocol
 } from "../../generated/ast"
 
@@ -43,7 +44,7 @@ export const noUnusedPrincipals = {
             })
 
         streamAllContents(protocol)
-            .filter(isKnowledgeCheck)
+            .filter(isConfidentialityCheck)
             .forEach(kc => {
                 kc.target.forEach(tar => {
                     if (tar.ref !== undefined) {
@@ -62,6 +63,15 @@ export const noUnusedPrincipals = {
                 })
             })
 
+        streamAllContents(protocol)
+            .filter(isSharedKnowledgeDef)
+            .forEach(pkd => {
+                pkd.target.forEach(pref => {
+                    if (pref.ref !== undefined) {
+                        references.add(pref.ref.name)
+                    }
+                })
+            })
         principals.forEach(p => {
             if (!references.has(p)) {
                 streamAllContents(protocol)
@@ -75,3 +85,4 @@ export const noUnusedPrincipals = {
         })
     }
 }
+

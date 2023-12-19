@@ -1,6 +1,6 @@
 import type { AstNode, AstNodeDescription, LangiumDocument, PrecomputedScopes } from "langium"
 import { DefaultScopeComputation, MultiMap, streamAllContents } from "langium"
-import type { FunctionDef, Principal } from "./generated/ast"
+import { FunctionDef, isState, Principal, State } from "./generated/ast"
 import { isFunctionDef, isPrincipal } from "./generated/ast"
 import { Type, isType } from "langium/lib/grammar/generated/ast"
 
@@ -27,7 +27,7 @@ export class KantScopeComputation extends DefaultScopeComputation {
         const scopes = new MultiMap<AstNode, AstNodeDescription>()
         // Here we navigate the full AST - local scopes shall be available in the whole document
         for (const node of streamAllContents(rootNode)) {
-            if (isFunctionDef(node) || isPrincipal(node) || isType(node)) {
+            if (isFunctionDef(node) || isPrincipal(node) || isType(node) || isState(node)) {
                 const names = getLocalScopeNamesFrom(node)
                 names.forEach(name => scopes.add(rootNode, this.descriptions.createDescription(node, name, document)))
             }
@@ -51,13 +51,15 @@ export class KantScopeComputation extends DefaultScopeComputation {
     }
 }
 
-const getLocalScopeNamesFrom = (node: FunctionDef | Principal | Type ): string[] => {
+const getLocalScopeNamesFrom = (node: FunctionDef | Principal | Type | State): string[] => {
     switch (node.$type) {
         case `FunctionDef`:
             return [node.name]
         case `Principal`:
             return [node.name]
         case 'Type':
+            return [node.name]
+        case 'State':
             return [node.name]
     }
 }

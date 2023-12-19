@@ -5,10 +5,9 @@ import {
     isKnowledgeDef,
     isKnowledgeDefBuiltin,
     isKnowledgeDefCustom,
-    isKnowledgeDefCustomName,
+    isKnowledgeRef,
     isKnowledgeFromFunction,
     isKnowledgeFromFunctionArgsElements,
-    isKnowledgeRef,
     isListAccess,
     Protocol
 } from "../../generated/ast"
@@ -37,16 +36,14 @@ export const knowledgeRetrieval = {
                             const name = kd.name[i]
                             const type = kd.customType[i]?.ref?.name
                             let principalList: List = new List()
-                            if (kd.$container.$type === 'PrincipalKnowledgeDef') {
+                            if (kd.$container.$type === 'PrincipalKnowledgeDef' || kd.$container.$type === 'SharedKnowledgeDef') {
                                 kd.$container.target.forEach(principalName => {
                                     principalList.add(principalName.ref?.name!)
                                 })
                             }
+
                             knowledgeClass.addNewGlobalKnowledge(name!, principalList, type!)
                         }
-
-                       
-                        
                     
                 }
             
@@ -54,7 +51,7 @@ export const knowledgeRetrieval = {
                 if (isKnowledgeDefCustom(kd)) {
                     let principalList: List = new List()
                             
-                            if (kd.$container.$type === 'PrincipalKnowledgeDef') {
+                            if (kd.$container.$type === 'PrincipalKnowledgeDef' || kd.$container.$type === 'SharedKnowledgeDef') {
                                 kd.$container.target.forEach(principalName => {
                                     principalList.add(principalName.ref?.name!)
                                 })
@@ -73,8 +70,8 @@ export const knowledgeRetrieval = {
                             functionName === "HASH" ||
                             functionName === "PUB_GEN"
                         ) {
-                            if (isKnowledgeDefCustomName(kd.left)) {
-                                const knowledgeName = kd.left.name
+                            if (isKnowledgeRef(kd.left)) {
+                                const knowledgeName = kd.left.ref
                                 const functionParam = kd.value.args.args
                                 
                                 if (isKnowledgeFromFunctionArgsElements(kd.value.args)) {
@@ -96,8 +93,8 @@ export const knowledgeRetrieval = {
                             }
                         }
                         if(functionName === "DF"){
-                            if (isKnowledgeDefCustomName(kd.left)) {
-                                const knowledgeName = kd.left.name
+                            if (isKnowledgeRef(kd.left)) {
+                                const knowledgeName = kd.left.ref
                                 const functionParam = kd.value.args.args
                                 let paramName:string=""
                                 let arrayParam:string[]=[]
@@ -126,8 +123,8 @@ export const knowledgeRetrieval = {
                         }
                         if(functionName === "EXP"){
                                 
-                                if (isKnowledgeDefCustomName(kd.left)) {
-                                    const knowledgeName = kd.left.name
+                                if (isKnowledgeRef(kd.left)) {
+                                    const knowledgeName = kd.left.ref
                                     const functionParam = kd.value.args.args
                                     let paramName:string=""
                                     let ArrayParam:string[]=[]
@@ -157,7 +154,7 @@ export const knowledgeRetrieval = {
                             
                         }
                         /*if(functionName === "MAC" || functionName === "SIGN"){
-                            if (isKnowledgeDefCustomName(kd.left)) {
+                            if (isKnowledgeRef(kd.left)) {
                                 const knowledgeName = kd.left.name
                                 knowledgeClass.addNewGlobalKnowledge(knowledgeName, principalList, returnType)
                             }
@@ -166,8 +163,8 @@ export const knowledgeRetrieval = {
 
 
                         if (functionName === "CONCAT") {
-                            if (isKnowledgeDefCustomName(kd.left)) {
-                                const knowledgeName = kd.left.name
+                            if (isKnowledgeRef(kd.left)) {
+                                const knowledgeName = kd.left.ref
                                 knowledgeClass.addNewGlobalKnowledge(knowledgeName, principalList, "BitString")
 
                                 let tempArr: string[] = []
@@ -210,8 +207,8 @@ export const knowledgeRetrieval = {
                             // modificare listKnowledge (array puntatori ai valori delle lista)
                         }
                         if (functionName === "SPLIT") {
-                            if (isKnowledgeDefCustomName(kd.left)) {
-                                const knowledgeSplit = kd.left.name
+                            if (isKnowledgeRef(kd.left)) {
+                                const knowledgeSplit = kd.left.ref
                                 if (isKnowledgeFromFunctionArgsElements(kd.value.args)) {
                                     const functionParam = kd.value.args.args
                                     for (let i = 0; i < functionParam.length; i++) {
@@ -261,8 +258,8 @@ export const knowledgeRetrieval = {
                              functionName === "SIGN"
 
                          ) {
-                            if (isKnowledgeDefCustomName(kd.left)) {
-                                const knowledgeName = kd.left.name
+                            if (isKnowledgeRef(kd.left)) {
+                                const knowledgeName = kd.left.ref
                                 const functionSecondaryParam=kd.value.keys
                                 if (isKnowledgeFromFunctionArgsElements(kd.value.args)) {
                                     const functionParam = kd.value.args.args
@@ -346,7 +343,7 @@ export const knowledgeRetrieval = {
 
                                     if (isKnowledgeRef(functionParam[0])) {
                                         //firstParam = functionParam[0].ref
-                                        if (isKnowledgeDefCustomName(kd.left)) {
+                                        if (isKnowledgeRef(kd.left)) {
                                             //accept('info', `(entrato nel ramo if desiderato) firstParam: ${firstParam}`, { node: protocol })
                                             //knowledgeClass.insertAliasDecrypt(firstParam, kd.left.name, principalList)
                                         }
@@ -354,15 +351,15 @@ export const knowledgeRetrieval = {
                                     if (isListAccess(functionParam[0])) {
                                         //let finalString = functionParam[0].ref.concat("[" + functionParam[0].index + "]")
                                         //accept('info', `(entrato nel ramo if desiderato) firstParam: ${finalString}`, { node: protocol })
-                                        if (isKnowledgeDefCustomName(kd.left)){
+                                        if (isKnowledgeRef(kd.left)){
 
                                         }
                                         //knowledgeClass.insertAliasDecrypt(finalString, kd.left.name, principalList)                                        
                                     }
                                 }*/
 
-                                if (isKnowledgeDefCustomName(kd.left)) {
-                                    const knowledgeName = kd.left.name
+                                if (isKnowledgeRef(kd.left)) {
+                                    const knowledgeName = kd.left.ref
                                     if (isKnowledgeFromFunctionArgsElements(kd.value.args)) {
                                         const functionParam = kd.value.args.args
                                         const functionSecondaryParam=kd.value.keys
@@ -430,14 +427,14 @@ export const knowledgeRetrieval = {
                         if (functionName === "HKDF") {
                             let principalList: List = new List()
                             
-                            if (kd.$container.$type === 'PrincipalKnowledgeDef') {
+                            if (kd.$container.$type === 'PrincipalKnowledgeDef' || kd.$container.$type === 'SharedKnowledgeDef') {
                                 kd.$container.target.forEach(principalName => {
                                     principalList.add(principalName.ref?.name!)
                                 })
                             }
                             // crea 5 valori nuovi (fresh)
-                            if (isKnowledgeDefCustomName(kd.left)) {
-                                const name = kd.left.name
+                            if (isKnowledgeRef(kd.left)) {
+                                const name = kd.left.ref
                                 knowledgeClass.addNewGlobalKnowledge(name, principalList, "BitString")
 
                                 let returnLength = 0
@@ -457,8 +454,8 @@ export const knowledgeRetrieval = {
                             // for now, no set or list destructuring
                         }
                         if(functionName=== "PUB_GEN"){
-                            if (isKnowledgeDefCustomName(kd.left)) {
-                                let pubkey= kd.left.name
+                            if (isKnowledgeRef(kd.left)) {
+                                let pubkey= kd.left.ref
                                 let privkey:string=""
                                 if(isKnowledgeRef(kd.value.args.args[0]!)){
                                      privkey=kd.value.args.args[0]!.ref

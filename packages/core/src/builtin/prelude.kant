@@ -6,7 +6,7 @@
  * of the protocol, therefore its definitions can be used directly without
  * prior definition in protocol definitions.
  */
-type Nonce, SymmetricKey, PrivateKey, PublicKey , Group, IdCertificate, BitString, Timestamp, Digest , Tag , Signature, Ciphertext 
+type Nonce, SymmetricKey, PrivateKey, PublicKey , Group, IdCertificate, BitString, Timestamp, Digest , Tag , Signature, Ciphertext, Number
 
 function HASH(value:BitString) -> [ hash:Digest ] one way
 function HKDF(salt: Nonce, ikm: SymmetricKey, info: BitString) -> [ k1: SymmetricKey, k2: SymmetricKey, k3: SymmetricKey, k4: SymmetricKey, k5: SymmetricKey ] one way
@@ -14,8 +14,8 @@ function PW_HASH(value: BitString) -> [ pw_hash: Digest ] one way
 function PUB_GEN(private:PrivateKey) -> [ pub_gen:PublicKey ] one way
 
 function EXP(base:Group, exp:PrivateKey) -> [ df:Group ] one way
-function DF(exp1:Group,exp2:Group)->[ key:SymmetricKey ] one way
-property forall a:PrivateKey, b:PrivateKey, g:Group | DF(EXP(g,b),EXP(g,a)) equals DF(EXP(g,a),EXP(g,b))
+function DF(g:Group,exp1:PrivateKey)->[ key:SymmetricKey ] one way
+property forall a:PrivateKey, b:PrivateKey, g:Group | DF(EXP(g,b),a) equals DF(EXP(g,a),b)
 
 function ENC(content:BitString) with k:SymmetricKey -> [ enc:Ciphertext ]
 function DEC(enc:Ciphertext) with k:SymmetricKey -> [ content:BitString ]
@@ -40,3 +40,11 @@ property forall v: BitString, k: SymmetricKey | MAC_VERIF(MAC(v) with k) with  k
 function CONCAT(...values: BitString) -> [ value: BitString ]
 function SPLIT(value: BitString) -> [ values: BitString ]
 property forall v: BitString | SPLIT(CONCAT(...v)) -> [ v ]
+
+function SCALAR_OP(r:Number,y:Group)->[z:Group]
+function ELEMENT_OP(x:Group,y:Group)->[z:Group]
+function INV_OP(h:Group)->[o:Group]
+function SUM_MOD(r:Number,n:Number)->[t:Number]
+property forall r:Number, t:Number, p:Group | ELEMENT_OP(SCALAR_OP(SUM_MOD(r,t),p),INV_OP(SCALAR_OP(t,p))) -> SCALAR_OP(r,p)
+property forall x:Group, y:Group | ELEMENT_OP(x,y) equals ELEMENT_OP(y,x)
+property forall r:Number, t:Number | SUM_MOD(r,t) equals SUM_MOD(t,r)

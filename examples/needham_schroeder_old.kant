@@ -1,0 +1,58 @@
+// There is a better written version of this protocol
+
+principal Alice, Bob
+
+Alice know {
+	const a, 
+	fresh na, 
+	ga = PUB_GEN(a) 
+}
+
+Bob know {
+	const b, 
+	fresh nb,
+	gb = PUB_GEN(b) 
+}
+
+Alice -> Bob: ga 
+
+Bob -> Alice: gb 
+
+Alice know {
+	e1 = PKE_ENC(na) with gb 
+}
+
+Alice -> Bob: e1 
+
+Bob know {
+	na_bob = PKE_DEC(e1) with b, 
+	message_to_send_to_Alice = CONCAT(na_bob, nb), 
+	e2 = PKE_ENC(message_to_send_to_Alice) with ga 
+}
+
+Bob -> Alice: e2
+
+Alice know {
+	m2 = PKE_DEC(e2) with a,
+	//[na_bob_alice, nb_alice] = SPLIT(m2),
+    splitted = SPLIT(m2),
+	na_bob_alice = splitted[0],
+	nb_alice = splitted[1],
+	nb_alice_pub_key = PUB_GEN(nb_alice),
+	e3 = PKE_ENC(gb) with nb_alice_pub_key
+}
+
+check na, na_bob_alice should be equal
+
+Alice -> Bob: e3
+
+Bob know {
+	nb_alice_bob = PKE_DEC(e3) with nb_alice
+}
+
+check nb, nb_alice_bob should be equal
+
+check Bob should authenticate Alice with e1
+check Alice should authenticate Bob with e2
+check only Alice, Bob should know na
+check only Alice, Bob should know nb

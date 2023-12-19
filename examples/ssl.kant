@@ -4,8 +4,15 @@
 
 principal Alice, Bob
 
+function EX(base:Group, exp:PrivateKey) -> [ df:Group ] one way
+function DO(exp1:Group,exp2:Group)-> [ df:Group ] one way
+property forall a:PrivateKey, b:PrivateKey, g:Group | DF(EXP(g,b),EXP(g,a)) equals DF(EXP(g,a),EXP(g,b))
+
+
 Alice know {
-    fresh priv_key_a: PrivateKey; 
+    state state_a1;
+    
+    fresh priv_key_a: PrivateKey;
     pub_key_a = PUB_GEN(priv_key_a);
 }
 

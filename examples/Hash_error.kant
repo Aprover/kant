@@ -1,0 +1,39 @@
+principal Alice, Bob
+
+Alice know{
+    state sending_puba;
+
+    fresh pka:PrivateKey;
+    puba=PUB_GEN(pka);
+    fresh pka_sign:PrivateKey;
+    puba_sign=PUB_GEN(pka_sign);
+    pub_keys_a=CONCAT(puba,puba_sign);
+
+}
+
+Alice ->Bob: pub_keys_a
+
+Bob know{
+    state waiting_puba;
+
+    fresh pkb:PrivateKey;
+    pubb=PUB_GEN(pkb);
+    rec_pub_keys_a=SPLIT(pub_keys_a);
+}
+
+Bob->Alice:pubb
+
+Alice know{
+    state waiting_pubb;
+    transition sending_puba => waiting_pubb;
+    
+    fresh x:SymmetricKey;
+    enc_x=PKE_ENC(x) with pubb;
+    hash_x=HASH(x);
+    sign_hash=SIGN(hash_x) with pka;
+    mess_secret_sign=CONCAT(enc_x,sign_hash);
+  
+}
+
+Alice->Bob:mess_secret_sign
+

@@ -30,10 +30,10 @@ export const correctFunctionInvocationParams = {
                                 ) {
                                     accept(
                                         "error",
-                                        `You used an incorrect param type: "${knowledgeClass
+                                        `Incorrect param type: "${knowledgeClass
                                             .getGlobalKnowledgeDescriptorMap()
                                             .get(iter.ref)
-                                            ?.getType()}", while the invoked function requires a parameter of type "${
+                                            ?.getType()}", the invoked function requires a parameter of type "${
                                             correctParamTypes[h]
                                         }."`,
                                         { node: i }
@@ -51,10 +51,10 @@ export const correctFunctionInvocationParams = {
                                 ) {
                                     accept(
                                         "error",
-                                        `You used an incorrect param type: "${knowledgeClass
+                                        `Incorrect param type: "${knowledgeClass
                                             .getGlobalKnowledgeDescriptorMap()
                                             .get(iter.ref.concat("[" + iter.index + "]"))
-                                            ?.getType()}", while the invoked function requires a parameter of type "${
+                                            ?.getType()}", the invoked function requires a parameter of type "${
                                             correctParamTypes[h]
                                         }."`,
                                         { node: i }

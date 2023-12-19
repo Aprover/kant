@@ -33,10 +33,10 @@ export const correctFunctionInvocationSecondaryParams = {
                                 ) {
                                     accept(
                                         "error",
-                                        `You used an incorrect keys type: "${knowledgeClass
+                                        `Incorrect keys type: "${knowledgeClass
                                             .getGlobalKnowledgeDescriptorMap()
                                             .get(iter.ref)
-                                            ?.getType()}", while the invoked function requires a key of type "${
+                                            ?.getType()}", the invoked function requires a key of type "${
                                             correctKeysTypes[h]
                                         }."`,
                                         { node: iter }
@@ -55,10 +55,10 @@ export const correctFunctionInvocationSecondaryParams = {
                                 ) {
                                     accept(
                                         "error",
-                                        `You used an incorrect param type: "${knowledgeClass
+                                        `Incorrect key type: "${knowledgeClass
                                             .getGlobalKnowledgeDescriptorMap()
                                             .get(iter.ref.concat("[" + iter.index + "]"))
-                                            ?.getType()}", while the invoked function requires a parameter of type "${
+                                            ?.getType()}", the invoked function requires a key of type "${
                                             correctKeysTypes[h]
                                         }."`,
                                         { node: iter }

@@ -1,17 +1,31 @@
-principal Alice,Bob
+principal Alice,Bob,Server
 
+Server,Alice share{
+    
+    const key:SymmetricKey;
+    fresh gg:PrivateKey;
+    res=CONCAT(key,gg);
+
+}
 
 Bob know{
+    state x;
+    fresh teste:Nonce;
+    //function PING(message: BitString) with k: PrivateKey -> [ signed: Signature ]
     fresh pk1:PrivateKey;
     pbkl=PUB_GEN(pk1);
     fresh bit:BitString;
-    j=SIGN(bit)with pk1;
+    j=SIGN(teste)with pk1;
     test=CONCAT(j,pbkl);
+    
 }
 
 Bob -> Alice:test
+Alice -> Bob: key
 
 Alice know{
+    state state_1a;
+
     fresh na:Nonce;
     fresh pk:PrivateKey;
     pbk=PUB_GEN(pk);
@@ -20,12 +34,12 @@ Alice know{
     const auth:BitString;
     h=HASH(na);
     conc=CONCAT(h,pk,na);
-    enc_k=PKE_ENC(k)with pbk;
+    enc_k=PKE_ENC(k)with pk1;
     enc=AEAD_ENC(h)with {k,auth};
     j1=SIGN(na)with pk;
     resi=SPLIT(test);
     
-     dec=AEAD_DEC(enc)with {k,auth};
+     dec=AEAD_DEC(resi)with {k,auth};
      s=SIGN_VERIF(resi[0]) with resi[1];
      sum=CONCAT(enc,k,enc_k,j1,auth);
     //v=AEAD_ENC(na) with {k,ch};
@@ -36,6 +50,9 @@ Alice know{
 Alice->Bob:sum
 
 Bob know{
+    state state_2b;
+    transition state_1a => state_2b;
+    
     fresh nb:Nonce;
     const fake:SymmetricKey;
     const loc:BitString;
@@ -45,7 +62,7 @@ Bob know{
     gexp1=EXP(g1,exp1);
     mess1=CONCAT(g1,gexp1);
     //pbk1=PUB_GEN(pk1);
-    retrive=SPLIT(sum);
+    retrive=SPLIT(g1);
     f=AEAD_DEC(retrive[0])with {retrive[1],retrive[4]};
 
 
@@ -54,9 +71,11 @@ Bob know{
 Bob -> Alice:mess1
 
 Alice know{
+    state state_2a;
+    transition state_1a => state_2a;
+
     mess_rec=SPLIT(mess1);
     fresh exp2:PrivateKey;
-    
     rec_ga=EXP(mess_rec[0],exp2);
     key_ab=DF(mess_rec[1],rec_ga);
     test_df=ENC(na) with key_ab;
@@ -66,8 +85,12 @@ Alice know{
 Alice -> Bob:mess2
 
 Bob know{
+    state state_3b;
+    transition state_2b => state_3b;
+
     fresh symm:SymmetricKey;
     key_ba=DF(mess2[0],gexp1);
     dec_test_df=DEC(mess2[1])with key_ba;
 
 }
+ check only Alice,Bob should know key_ba

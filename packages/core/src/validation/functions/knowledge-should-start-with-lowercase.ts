@@ -1,7 +1,7 @@
 import { streamAllContents, type MaybePromise, type ValidationAcceptor } from "langium"
 import {
     isKnowledgeDefBuiltin,
-    isKnowledgeDefCustomName,
+    isKnowledgeRef,
     isKnowledgeDefSetDestructuringAssignment,
     type Protocol
 } from "../../generated/ast"
@@ -20,11 +20,11 @@ export const knowledgeShouldStartWithLowelcase = {
             })
 
         streamAllContents(protocol)
-            .filter(isKnowledgeDefCustomName)
+            .filter(isKnowledgeRef)
             .forEach(cn => {
-                const lower = cn.name.charAt(0).toLowerCase()
-                if (cn.name.charAt(0) !== lower) {
-                    accept(`warning`, `Knowledge name ${cn.name} should start with a lower case letter.`, { node: cn })
+                const lower = cn.ref.charAt(0).toLowerCase()
+                if (cn.ref.charAt(0) !== lower) {
+                    accept(`warning`, `Knowledge name ${cn.ref} should start with a lower case letter.`, { node: cn })
                 }
             })
 

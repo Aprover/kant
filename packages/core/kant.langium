@@ -4,7 +4,7 @@ entry Protocol:
     elements+=Element*;
 
 Element:
-    FunctionDef | FunctionInversionDef | PropertyDef | SharedKnowledgeDef | Principals | PrincipalKnowledgeDef | Communication | ScenarioBranching | Check | TypeDefinition ;
+    FunctionDef |  PropertyDef | SharedKnowledgeDef | Principals | PrincipalKnowledgeDef | Communication | Check | TypeDefinition ;
 
 TypeDefinition: 
     'type' (name+=Type | name+=Type (',' name+=Type)*)
@@ -71,10 +71,11 @@ FunctionKeyInvElement:
 FunctionInvReturn:
     '[' elements+=FunctionReturnInvElement ']'
 	| '[' elements+=FunctionReturnInvElement (',' elements+=FunctionReturnInvElement)* ']'
+    | elements=KnowledgeFromFunction
 ;
 
 FunctionReturnInvElement:
-    name+=ID 
+    name=ID 
 ;
 
 FunctionReturn:
@@ -91,7 +92,7 @@ PropertyDef:
 ;
 
 KnowledgeEqualityDef:
-    (intro=UniversalIntroduction)?
+    (intro=UniversalIntroduction)
 	value=KnowledgeFromFunction 'equals' target=KnowledgeFromFunction
 ;
 
@@ -100,7 +101,8 @@ KnowledgeEqualityDef:
 ; */
 
 SharedKnowledgeDef:
-    'shared' 'knowledge' knowledge=Knowledge
+    target+=[Principal:ID] (',' target+=[Principal:ID])* 'share' '{'  knowledge+=Knowledge (';' knowledge+=Knowledge)* ';' '}'
+
 ;
 
 Principals:
@@ -112,33 +114,43 @@ Principal:
 ;
 
 PrincipalKnowledgeDef:
-    target+=[Principal:ID] (',' target+=[Principal:ID])* 'know' '{' knowledge+=Knowledge (';' knowledge+=Knowledge)* ';' '}'
+    target+=[Principal:ID] (',' target+=[Principal:ID])* 'know' '{' state=StateDefinition ';' (transition=StateTransition ';')? knowledge+=Knowledge (';' knowledge+=Knowledge)* ';' '}'
 ;
 
 Knowledge:
-    KnowledgeDef;
+    KnowledgeDef
+    
+;
 
 KnowledgeDef:
     KnowledgeDefBuiltin
     | KnowledgeDefCustom
-    | StateDefinition
+    
 ;
 
 KnowledgeDefBuiltin:
     type=('const' | 'fresh') (name+=ID (':' customType+=[Type:ID]) | name+=ID (':' customType+=[Type:ID]) (',' name+=ID (':' customType+=[Type:ID]))*)
 ;
 
-StateDefinition:
-    'state' (name+=ID | name+=ID (',' name+=ID)*)
-;
 
-KnowledgeDefCustom:
-    left=(KnowledgeDefCustomName | KnowledgeDefDestructuring) '=' value=KnowledgeFromFunction
-;
-
-KnowledgeDefCustomName:
+State:
     name=ID
 ;
+
+StateDefinition:
+    'state' (label=State)
+;
+
+StateTransition:
+   'transition' (tag+=[State:ID] )'=>' (tag+=[State:ID])
+
+;
+
+
+KnowledgeDefCustom:
+    left=(KnowledgeRef | KnowledgeDefDestructuring) '=' value=KnowledgeFromFunction
+;
+
 
 KnowledgeDefDestructuring:
     KnowledgeDefSetDestructuring
@@ -178,6 +190,10 @@ KnowledgeValue:
     | ListAccess
 ;
 
+KnowledgeCheck:
+    KnowledgeRef
+    | ListAccess
+;
 ListAccess:
     ref=ID '[' index=INT ']'
 ;
@@ -208,40 +224,26 @@ Communication:
     ('(' messageId=ID ')')? from=[Principal:ID] '->' to+=[Principal:ID] (',' to+=[Principal:ID])* ':' (ref=KnowledgeRef)
 ;
 
-ScenarioBranching:
-    ScenarioOptional
-	| ScenarioAlternatives;
 
-ScenarioOptional:
-    'optionally' scenario+=Scenario;
-
-ScenarioAlternatives:
-    'alternatively' ('or' scenario+=Scenario) ('or' scenario+=Scenario)+;
-
-Scenario:
-    (name=STRING)? '{' elements+=Element+ '}';
 
 Check:
-    'check' (KnowledgeCheck
+    'check' (ConfidentialityCheck
 	| EqualityCheck
 	| FreshnessCheck
-	| LinkabilityCheck
 	| AuthenticationCheck);
 
-KnowledgeCheck:
-    (here?='here')? (only?='only')? (target+=[Principal:ID] (',' target+=[Principal:ID])*) ('should' (not?='not')? 'know') knowledge=KnowledgeValue;
+ConfidentialityCheck:
+    (here?='here')? (only?='only')? (target+=[Principal:ID] (',' target+=[Principal:ID])*) ('should' (not?='not')? 'know') knowledge=KnowledgeCheck;
 
 EqualityCheck:
-    knowledge+=KnowledgeRef (',' knowledge+=KnowledgeRef)+ 'should' (not?='not')? 'be' 'equal';
+    knowledge+=KnowledgeCheck(',' knowledge+=KnowledgeCheck)+ 'should' (not?='not')? 'be' 'equal';
 
 FreshnessCheck:
-    knowledge+=KnowledgeRef (',' knowledge+=KnowledgeRef)* 'should' (not?='not')? 'be' 'fresh';
+    knowledge+=KnowledgeCheck (',' knowledge+=KnowledgeCheck)* 'should' (not?='not')? 'be' 'fresh';
 
-LinkabilityCheck:
-    knowledge+=KnowledgeRef (',' knowledge+=KnowledgeRef)+ 'should' (not?='not')? 'be' 'linked';
 
 AuthenticationCheck:
-    from=[Principal:ID] 'should' 'authenticate' target=[Principal:ID] 'with' knowledge=KnowledgeValue;
+    from=[Principal:ID] 'should' 'authenticate' target=[Principal:ID] 'with' knowledge=KnowledgeCheck;
 
 
 terminal ID returns string: /[a-zA-Z]([a-zA-Z0-9_])*/;

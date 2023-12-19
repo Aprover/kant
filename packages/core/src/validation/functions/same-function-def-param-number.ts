@@ -38,7 +38,7 @@ export const sameFunctionDefParamCardinality = {
                         //accept(`error`, `"arg: ${i.args.args.length}" `, { node: i })
                         if (i.args.args.length !== functionDefParamCard.get(i.invoked.ref?.name!)) {
                             
-                            accept(`error`, `"${i.invoked.ref?.name!}" requires "${functionDefParamCard.get(i.invoked.ref?.name!)}" arguments to be passed, but you provided "${i.args.args.length}" arguments.`, { node: i })
+                            accept(`error`, `"${i.invoked.ref?.name!}" requires "${functionDefParamCard.get(i.invoked.ref?.name!)}" argument, but "${i.args.args.length}" arguments are provided.`, { node: i })
                             returnMap.set(i,false)
                         }else{
                             returnMap.set(i,true)

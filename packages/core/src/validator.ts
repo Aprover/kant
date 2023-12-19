@@ -20,7 +20,6 @@ import { onlyRefInKnowledgeCheck } from "./validation/functions/only-ref-in-know
 import { onlyRefInAuthenticationCheck } from "./validation/functions/only-ref-in-authentication-check"
 import { noFreshConstEquality } from "./validation/functions/no-fresh-const-equality"
 import { uniqueCommunicationNames } from "./validation/functions/unique-communication-names"
-import { uniqueScenarioNames } from "./validation/functions/unique-scenario-names"
 import { functionsAllCaps } from "./validation/functions/functions-all-caps"
 import { consecutiveCommunications } from "./validation/functions/consecutive-communication"
 //import { sameFunctionDefParamCardinality } from "./validation/functions/same-function-def-param-number"
@@ -70,7 +69,6 @@ export function registerValidationChecks(services: KantServices): void {
             KantValidator.onlyRefInAuthenticationCheck,
             KantValidator.noFreshConstEquality,
             KantValidator.uniqueCommunicationNames,
-            KantValidator.uniqueScenarioNames,
             KantValidator.uniqueFunctionNames,
             KantValidator.functionsAllCaps,
             //KantValidator.sam
@@ -147,9 +145,6 @@ export const KantValidator = {
     },
     uniqueCommunicationNames: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
         uniqueCommunicationNames.uniqueCommunicationNames(protocol, accept)
-    },
-    uniqueScenarioNames: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
-        uniqueScenarioNames.uniqueScenarioNames(protocol, accept)
     },
     uniqueFunctionNames: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
         uniqueFunctionNames.uniqueFunctionNames(protocol, accept)

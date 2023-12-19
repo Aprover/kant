@@ -1,0 +1,94 @@
+principal Alice,Bob
+type HTag
+
+function SCALAR_OP(r:Number,y:Group)->[z:Group]
+function ELEMENT_OP(x:Group,y:Group)->[z:Group]
+function INV_OP(h:Group)->[o:Group]
+function SUM_MOD(r:Number,n:Number)->[t:Number]
+property forall r:Number, t:Number, p:Group | ELEMENT_OP(SCALAR_OP(SUM_MOD(r,t),p),INV_OP(SCALAR_OP(t,p))) -> SCALAR_OP(r,p)
+property forall x:Group, y:Group | ELEMENT_OP(x,y) equals ELEMENT_OP(y,x)
+property forall r:Number, t:Number | SUM_MOD(r,t) equals SUM_MOD(t,r)
+function HMAC(value:BitString) with k:BitString -> [ mac:HTag ]
+function HMAC_VERIF(mac:HTag) with k:BitString -> [value:BitString]
+property forall v: BitString, k: BitString | HMAC_VERIF(HMAC(v) with k) with  k -> [ v ]
+
+Alice,Bob share{
+    const pe:Group;
+}
+
+Bob know{
+    state nothig_B;
+
+    const mac_B:Number;
+}
+
+Bob -> Alice: mac_B
+
+Alice know {
+    state nothig_A;
+
+    fresh a:Number;
+    fresh a1:Number;
+    sa=SUM_MOD(a,a1);
+    pe_A=SCALAR_OP(a1,pe);
+    pe_inv_A=INV_OP(pe_A);
+    commit_A= CONCAT(sa,pe_inv_A);
+}
+
+Alice->Bob:commit_A
+
+Bob know {
+    state committed_B;
+    transition nothig_B => committed_B;
+
+    fresh b:Number;
+    fresh b1:Number;
+    sb=SUM_MOD(b,b1);
+    pe_B=SCALAR_OP(b1,pe);
+    pe_inv_B=INV_OP(pe_B);
+    commit_B= CONCAT(sb,pe_inv_B);
+    //rec_commit_A=SPLIT(commit_A);
+}
+
+Bob -> Alice: commit_B
+
+Alice know{
+    state committed_A;
+    transition nothig_A=>committed_A;
+    fresh scA:Nonce;
+    //rec_commit_B=SPLIT(commit_B);
+    pe_sb=SCALAR_OP(rec_commit_B[0],pe);
+    pe_b=ELEMENT_OP(pe_sb,rec_commit_B[1]);
+    pe_ba=SCALAR_OP(a,pe_b);
+    sa_sb=SUM_MOD(sa,rec_commit_B[0]);
+    conc_kck_a=CONCAT(pe_ba,sa_sb);
+    kck_a=HASH(conc_kck_a);
+    conc_confirm_A=CONCAT(scA,sa,pe_inv_A,rec_commit_B[0],rec_commit_B[1]);
+    confirm_A=HMAC(conc_confirm_A)with kck_a;
+}
+
+Alice -> Bob: confirm_A
+
+Bob know{
+    state confirmed_B;
+    transition committed_B=>confirmed_B;
+    fresh scB:Nonce;
+    //rec_commit_A=SPLIT(commit_B);
+    pe_sa=SCALAR_OP(rec_commit_A[0],pe);
+    pe_a=ELEMENT_OP(pe_sa,rec_commit_A[1]);
+    pe_ab=SCALAR_OP(b,pe_a);
+    sb_sa=SUM_MOD(sb,rec_commit_A[0]);
+    conc_kck_b=CONCAT(pe_ab,sb_sa);
+    kck_b=HASH(conc_kck_b);
+    conc_confirm_B=CONCAT(scB,sb,pe_inv_B,rec_commit_A[0],rec_commit_A[1]);
+    confirm_B=HMAC(conc_confirm_B) with kck_b ;
+}
+
+Bob -> Alice: confirm_B
+
+Alice know{
+    state confirmed_A;
+    transition committed_A=>confirmed_A;
+    ok_b=HMAC_VERIF(confirm_B);
+}
+
