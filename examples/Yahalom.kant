@@ -1,90 +1,70 @@
+
 //A->B:A,na
-//B->S:B,nb,{A,na}kbs
-//S->A:nb,{B,kab,na}kas,{A,kab,nb}kbs
-//A->B:{A,kab,nb}kbs,{nb}kab
+//B->S:B,{A,na,nb}kbs
+//S->A:{B,kab,na,nb}kas,{A,kab}kbs
+//A->B:{A,kab}kbs,{nb}kab
 
 principal Alice,Bob,Server
 
-Alice know{
-    const priv_a: PrivateKey;
-    
-    pub_a=PUB_GEN(priv_a);
+Alice, Server share{
+    const kas:SymmetricKey;
 }
 
-Server know{
-    const priv_s: PrivateKey;
-    pub_s=PUB_GEN(priv_s);
-    const kas: SymmetricKey;
-    const kbs: SymmetricKey;
+Bob, Server share{
+    const kbs:SymmetricKey;
 }
 
-Bob know{
-    const priv_b: PrivateKey;
-    pub_b=PUB_GEN(priv_b);
-} 
-
-Alice->Server: pub_a
-Bob->Server:pub_b
-
-Server know{
-    fresh nz:Nonce;
-    eas=PKE_ENC(kas) with pub_a;
-    ebs=PKE_ENC(kbs) with pub_b;
-}
-
-Server->Alice:eas
-
-Alice know{
-    kas_rec=PKE_DEC(eas) with priv_a;
-}
-
-Server->Bob:ebs
-
-Bob know{
-    kbs_rec=PKE_DEC(ebs) with priv_b;
-}
-
-Alice know{
+Alice know{ 
+    state a1;
     fresh na: Nonce;
-    const cert_a: IdCertificate;
-    m1=CONCAT(cert_a,na);
+    const a_cert:IdCertificate;
+    m1=CONCAT(a_cert,na);
 }
-
-// principals = [[Alice, Alice], [Alice, Alice], [[Alice, Bob]]]
-// global = [[na, m1[1]], [cert_a, m1[0]], [m1]]
-// m1 -> [1, 0]
-// global[1] -> [cert_a, m1[0]]
 
 Alice -> Bob: m1
 
 Bob know{
-    // diff replace
-    // fresh test_b,
-    const cert_b: IdCertificate;
+    state b1;
     fresh nb: Nonce;
-    enc_a=ENC(m1) with kbs_rec;
-    m2=CONCAT(cert_b,nb,enc_a);
+    const b_cert:IdCertificate;
+    a_na=SPLIT(m1);
+    a_na_nb=CONCAT(a_na[0],a_na[1],nb);
+    enc_a_na_nb=ENC(a_na_nb) with kbs;
+    m2=CONCAT(b_cert,enc_a_na_nb);
 }
 
-Bob->Server: m2
+Bob -> Server: m2
 
 Server know{
-    m2_rec = SPLIT(m2);
-    m1_dec=DEC(m2_rec[2]) with kbs;
+    state s1;
     fresh kab: SymmetricKey;
-    m1_split = SPLIT(m1_dec);
-    param_Alice=CONCAT(m2_rec[0],kab,m1_split[1]);
-    share_kab_Alice=ENC(param_Alice) with kas;
-    param_Bob=CONCAT(m1_split[0],kab,m2_rec[1]);
-    share_kab_Bob=ENC(param_Bob) with kbs;
-    m3=CONCAT(m2_rec[1],share_kab_Alice,share_kab_Bob);
+    split_m2=SPLIT(m2);
+    dec_a_na_nb=DEC(split_m2[1]) with kbs;
+    split_dec_a_na_nb=SPLIT(dec_a_na_nb);
+    m3_0=CONCAT(split_m2[0],kab,split_dec_a_na_nb[1],split_dec_a_na_nb[2]);
+    enc_m3_0=ENC(m3_0) with kas;
+    m3_1=CONCAT(split_dec_a_na_nb[0],kab);
+    enc_m3_1=ENC(m3_1) with kbs;
+    m3=CONCAT(enc_m3_0,enc_m3_1);
 }
 
-Server->Alice:m3
+Server -> Alice: m3
 
 Alice know{
-    m3_split = SPLIT(m3);
-    kab_dec_share=DEC(m3_split[1]) with kas_rec;
-    kab_dec_share_rec = SPLIT(kab_dec_share);
-    nonce_enc=ENC(m3_split[0]) with kab_dec_share_rec[1];
+    state a2;
+    split_m3=SPLIT(m3);
+    dec_m3_0=DEC(split_m3[0]) with kas;
+    split_b_kab_na_nb=SPLIT(dec_m3_0);
+    m4_1=ENC(split_b_kab_na_nb[3]) with split_b_kab_na_nb[1];
+    m4=CONCAT(split_m3[1],m4_1);
+} 
+
+Alice->Bob: m4
+
+Bob know{
+    state b2;
+    split_m4=SPLIT(m4);
+    dec_m4_0=DEC(split_m4[0]) with kbs;
+    split_a_kab=SPLIT(dec_m4_0);
+    dec_m4_1=DEC(split_m4[1]) with split_a_kab[1];
 }
