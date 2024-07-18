@@ -1,5 +1,5 @@
-import { MaybePromise, ValidationAcceptor, streamAllContents } from "langium";
-import { Protocol, isPrincipal } from "../../generated/ast";
+import { MaybePromise, streamAllContents, ValidationAcceptor } from "langium"
+import { isPrincipal, Protocol } from "../../generated/ast"
 
 export const uniquePrincipalNames = {
     uniquePrincipalNames: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {
@@ -12,5 +12,5 @@ export const uniquePrincipalNames = {
                 }
                 principalNames.add(p.name)
             })
-    } 
+    }
 }

@@ -18,14 +18,13 @@ export const correctFunctionInvocationSecondaryParams = {
                         i.invoked.ref?.key?.elements.forEach(key => {
                             correctKeysTypes.push(key.type.type.ref?.name!)
                         })
-                       
+
                         let paramKeysNames = i.keys
-                        
-                        for(let h=0;h<paramKeysNames.length;h++){
-                            let iter=paramKeysNames[h]!
+
+                        for (let h = 0; h < paramKeysNames.length; h++) {
+                            let iter = paramKeysNames[h]!
                             //accept("error",`You used an incorrect h: "${correctKeysTypes[h]}"`,{ node: i })
-                            if(isKnowledgeRef(iter)){
-                                
+                            if (isKnowledgeRef(iter)) {
                                 if (
                                     knowledgeClass.getGlobalKnowledgeDescriptorMap().get(iter.ref)?.getType() !==
                                         correctKeysTypes[h] &&
@@ -41,11 +40,9 @@ export const correctFunctionInvocationSecondaryParams = {
                                         }."`,
                                         { node: iter }
                                     )
-                                    
                                 }
                             }
-                            if(isListAccess(iter)){
-                                
+                            if (isListAccess(iter)) {
                                 if (
                                     knowledgeClass
                                         .getGlobalKnowledgeDescriptorMap()
@@ -63,11 +60,10 @@ export const correctFunctionInvocationSecondaryParams = {
                                         }."`,
                                         { node: iter }
                                     )
-                                    
                                 }
                             }
                         }
-                       
+
                         /*
                         paramNames.filter(isKnowledgeFromFunction).forEach(kff => {
                             if (getContainerOfType(kff, isPropertyDef) === undefined) {

@@ -1,13 +1,12 @@
-
 export class KnowledgeNodeDescriptor {
-    private firstIndex: number;
-    private secondIndex: number;
-    private type: string;
-    
+    private firstIndex: number
+    private secondIndex: number
+    private type: string
+
     constructor(first: number, second: number, type: string) {
-      this.firstIndex = first;
-      this.secondIndex = second;
-      this.type = type; 
+        this.firstIndex = first
+        this.secondIndex = second
+        this.type = type
     }
 
     public getIndexes(): number[] {

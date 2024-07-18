@@ -15,7 +15,7 @@ This function takes two arguments:
 
 ## Function Description
 
-1. The function streams all contents of the protocol and filters out the communication instances. 
+1. The function streams all contents of the protocol and filters out the communication instances.
 
 2. For each communication instance, it creates a new set `receivers` to store the names of recipients.
 

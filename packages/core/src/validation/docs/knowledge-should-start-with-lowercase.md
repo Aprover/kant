@@ -23,4 +23,4 @@ This function takes two arguments:
 
 ## Usage
 
-The `knowledgeShouldStartWithLowelcase` function enforces a naming convention where all knowledge definitions should start with a lowercase letter. By incorporating this function into Kant's validation service, it can maintain a consistent naming style. 
+The `knowledgeShouldStartWithLowelcase` function enforces a naming convention where all knowledge definitions should start with a lowercase letter. By incorporating this function into Kant's validation service, it can maintain a consistent naming style.

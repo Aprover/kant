@@ -1,10 +1,10 @@
 {
     "name": "kant-extension",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "displayName": "kant",
     "description": "vscode extension for the kant security protocols specification language",
-    "author": "Kristian Notari",
-    "publisher": "Kristian Notari",
+    "author": "Mario Lilli",
+    "publisher": "Mario Lilli",
     "repository": {
         "type": "git",
         "url": "git+https://github.com/cb-unimi/kant.git"

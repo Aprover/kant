@@ -1,5 +1,5 @@
-import { MaybePromise, ValidationAcceptor, streamAllContents } from "langium";
-import { Protocol, isAuthenticationCheck } from "../../generated/ast";
+import { MaybePromise, streamAllContents, ValidationAcceptor } from "langium"
+import { isAuthenticationCheck, Protocol } from "../../generated/ast"
 
 export const noSelfAuthentication = {
     noSelfAuthentication: (protocol: Protocol, accept: ValidationAcceptor): MaybePromise<void> => {

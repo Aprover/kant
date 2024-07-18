@@ -7,10 +7,10 @@ export const onlyRefInKnowledgeCheck = {
             .filter(isConfidentialityCheck)
             .forEach(kc => {
                 if (!(isKnowledgeRef(kc.knowledge) || isListAccess(kc.knowledge))) {
-                    accept(`error`, `Knowledge check should target only knowledge references and list access.`, { node: kc })
+                    accept(`error`, `Knowledge check should target only knowledge references and list access.`, {
+                        node: kc
+                    })
                 }
             })
     }
 }
-
-

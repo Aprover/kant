@@ -23,4 +23,4 @@ This function takes two arguments:
 
 ## Usage
 
-The `onlyRefInAuthenticationCheck` function helps ensure that the Kant's semantics are adhered to correctly. 
+The `onlyRefInAuthenticationCheck` function helps ensure that the Kant's semantics are adhered to correctly.

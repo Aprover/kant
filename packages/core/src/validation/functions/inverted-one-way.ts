@@ -20,11 +20,19 @@ export const invertedOneWay = {
                 if (isFunctionInversionDef(pd.property)) {
                     const inverterIsOw = pd.property.inverter.ref?.ow
                     if (inverterIsOw) {
-                        accept(`error`, `${pd.property.inverter.ref?.name} is a one way function, it can't invert another function.`, { node: pd })
+                        accept(
+                            `error`,
+                            `${pd.property.inverter.ref?.name} is a one way function, it can't invert another function.`,
+                            { node: pd }
+                        )
                     }
                     const invertedIsOw = pd.property.firstParam.invoked.ref?.ow
                     if (invertedIsOw) {
-                        accept(`error`, `${pd.property.firstParam.invoked.ref?.name} is a one way function, it can't be inverted.`, { node: pd })
+                        accept(
+                            `error`,
+                            `${pd.property.firstParam.invoked.ref?.name} is a one way function, it can't be inverted.`,
+                            { node: pd }
+                        )
                     }
                 }
             })

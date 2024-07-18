@@ -22,3 +22,5 @@ coverage
 # environment specific
 **/.DS_Store
 **/.env
+**/._*.*
+**/._*

@@ -17,7 +17,7 @@ This function takes two arguments:
 
 1. The function initializes two sets: `freshs` and `consts` to store the names of "fresh" and "const" knowledge definition values respectively.
 
-2. It streams all contents of the protocol and filters out the built-in knowledge definitions (`isKnowledgeDefBuiltin`). 
+2. It streams all contents of the protocol and filters out the built-in knowledge definitions (`isKnowledgeDefBuiltin`).
 
 3. For each built-in knowledge definition, it checks its type. If the type is "fresh", it adds the names of the definition to the `freshs` set. If the type is "const", it adds the names to the `consts` set.
 

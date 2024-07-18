@@ -20,9 +20,9 @@ export const correctFunctionInvocationParams = {
                         })
 
                         let paramNames = i.args.args
-                        for(let h=0;h<paramNames.length;h++){
-                            let iter=paramNames[h]!
-                            if(isKnowledgeRef(iter)){
+                        for (let h = 0; h < paramNames.length; h++) {
+                            let iter = paramNames[h]!
+                            if (isKnowledgeRef(iter)) {
                                 if (
                                     knowledgeClass.getGlobalKnowledgeDescriptorMap().get(iter.ref)?.getType() !==
                                         correctParamTypes[h] &&
@@ -39,9 +39,8 @@ export const correctFunctionInvocationParams = {
                                         { node: i }
                                     )
                                 }
-
                             }
-                            if(isListAccess(iter)){
+                            if (isListAccess(iter)) {
                                 if (
                                     knowledgeClass
                                         .getGlobalKnowledgeDescriptorMap()

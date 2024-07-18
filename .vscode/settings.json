@@ -12,5 +12,7 @@
             "severity": "warn"
         }
     ],
-    "search.useIgnoreFiles": false
+    "files.associations": {
+        "*.yaml": "home-assistant"
+    }
 }

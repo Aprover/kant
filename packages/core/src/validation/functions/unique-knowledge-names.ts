@@ -5,8 +5,8 @@ import {
     isKnowledgeDef,
     isKnowledgeDefBuiltin,
     isKnowledgeDefCustom,
-    isKnowledgeRef,
     isKnowledgeFromFunction,
+    isKnowledgeRef,
     type Protocol
 } from "../../generated/ast"
 
@@ -24,10 +24,7 @@ export const uniqueKnowledgeNames = {
                         }
                         knowledgeNames.add(n)
                     })
-                } else if (
-                    isKnowledgeDefCustom(kd) &&
-                    !isKnowledgeFromFunction(kd.$container.$container)
-                ) {
+                } else if (isKnowledgeDefCustom(kd) && !isKnowledgeFromFunction(kd.$container.$container)) {
                     if (isKnowledgeRef(kd.left)) {
                         if (knowledgeNames.has(kd.left.ref)) {
                             accept(`error`, `Knowledge name "${kd.left.ref}" already used.`, { node: kd })

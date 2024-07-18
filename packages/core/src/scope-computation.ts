@@ -1,18 +1,19 @@
 import type { AstNode, AstNodeDescription, LangiumDocument, PrecomputedScopes } from "langium"
 import { DefaultScopeComputation, MultiMap, streamAllContents } from "langium"
-import { FunctionDef, isState, Principal, State } from "./generated/ast"
-import { isFunctionDef, isPrincipal } from "./generated/ast"
-import { Type, isType } from "langium/lib/grammar/generated/ast"
+import { isType, Type } from "langium/lib/grammar/generated/ast"
+import { FunctionDef, isFunctionDef, isPrincipal, isState, Principal, State } from "./generated/ast"
 
 export class KantScopeComputation extends DefaultScopeComputation {
     override computeExports(document: LangiumDocument): Promise<AstNodeDescription[]> {
         if (document.textDocument.uri.startsWith(`builtin`)) {
             let functionDescriptions = streamAllContents(document.parseResult.value)
                 .filter(isFunctionDef)
-                .map(functionDef => this.descriptions.createDescription(functionDef, functionDef.name, document)).toArray()
+                .map(functionDef => this.descriptions.createDescription(functionDef, functionDef.name, document))
+                .toArray()
             let typeDescriptions = streamAllContents(document.parseResult.value)
-            .filter(isType)
-            .map(t => this.descriptions.createDescription(t, t.name, document)).toArray()
+                .filter(isType)
+                .map(t => this.descriptions.createDescription(t, t.name, document))
+                .toArray()
             /* let inversionFunctionDescriptions = streamAllContents(document.parseResult.value)
                 .filter(isFunctionInversionDef)
                 .map(inversionDef => this.descriptions.createDescription(inversionDef, inversionDef.name, document)).toArray() */
@@ -57,9 +58,9 @@ const getLocalScopeNamesFrom = (node: FunctionDef | Principal | Type | State): s
             return [node.name]
         case `Principal`:
             return [node.name]
-        case 'Type':
+        case "Type":
             return [node.name]
-        case 'State':
+        case "State":
             return [node.name]
     }
 }

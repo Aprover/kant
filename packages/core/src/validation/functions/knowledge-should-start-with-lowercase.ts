@@ -1,8 +1,8 @@
 import { streamAllContents, type MaybePromise, type ValidationAcceptor } from "langium"
 import {
     isKnowledgeDefBuiltin,
-    isKnowledgeRef,
     isKnowledgeDefSetDestructuringAssignment,
+    isKnowledgeRef,
     type Protocol
 } from "../../generated/ast"
 
