@@ -7,7 +7,7 @@
     "publisher": "Mario Lilli",
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/cb-unimi/kant.git"
+        "url": "git+https://github.com/Aprover/kant.git"
     },
     "categories": [
         "Programming Languages",

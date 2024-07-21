@@ -14,6 +14,7 @@ import {
 import { KnowledgeClass } from "../../KnowledgeClass"
 import { List } from "../utility/list"
 
+
 /**
  * this function populates the KnowledgeClass shared object, it finds all knowledge definition/aliasing and indexes it using the methods of the shared object mentioned (addNewGlobalKnowledge/addAliasGlobalKnowledge).
  * also, it call the methods (addPrincipalToKnowledge) of the shared object to create associations between knowledge references and principals
@@ -60,6 +61,7 @@ export const knowledgeRetrieval = {
 
                     if (isKnowledgeFromFunction(kd.value)) {
                         let functionName = kd.value.invoked.ref?.name!
+                        //let functionRef = kd.value.invoked
                         let returnType: string = ""
                         if (kd.value.invoked.ref?.return.elements.length! > 1) {
                             returnType = "BitString"
@@ -658,9 +660,64 @@ export const knowledgeRetrieval = {
                                 knowledgeClass.setKeyPairing(pubkey, privkey)
                             }
                         }
+                        if(functionName != "PW_HASH" && 
+                            functionName != "HASH" && 
+                            functionName != "PUB_GEN" && 
+                            functionName != "HKDF" && 
+                            functionName != "DEC" && 
+                            functionName != "PKE_DEC" &&
+                            functionName != "AEAD_DEC" &&
+                            functionName != "SIGN_VERIF" &&
+                            functionName != "MAC_VERIF" &&
+                            functionName != "ENC" &&
+                            functionName != "PKE_ENC" &&
+                            functionName != "AEAD_ENC" &&
+                            functionName != "MAC" &&
+                            functionName != "SIGN" &&
+                            functionName != "SPLIT" &&
+                            functionName != "CONCAT" &&
+                            functionName != "DF" &&
+                            functionName != "EXP"
+                        ){
+                            
+                            if (isKnowledgeRef(kd.left)) {
+                                const knowledgeName = kd.left.ref
+                                const functionParam = kd.value.args.args
+
+                                if (isKnowledgeFromFunctionArgsElements(kd.value.args)) {
+                                    functionParam.forEach(x=>{
+                                    if (isKnowledgeRef(x)) {
+                                        if (knowledgeClass.getGlobalKnowledgeDescriptorMap().get(x.ref) === undefined) {
+                                            accept("error", `The param "${x.ref}" is invoked before been defined.`, {
+                                                node: x
+                                            })
+                                        }
+                                    }
+                                    if (isListAccess(x)) {
+                                        let finalString = x.ref.concat("[" + x.index + "]")
+                                        if (
+                                            knowledgeClass.getGlobalKnowledgeDescriptorMap().get(finalString) ===
+                                            undefined
+                                        ) {
+                                            accept(
+                                                "error",
+                                                `The param "${finalString}" is invoked before been defined.`,
+                                                { node: x }
+                                            )
+                                        }
+                                    }
+                                })
+
+                                knowledgeClass.addNewGlobalKnowledge(knowledgeName, principalList, returnType)
+                            }
+                            
+                        }
+                            
+                        
                     }
                 }
-            })
+            }
+        })
 
         streamAllContents(protocol)
             .filter(isCommunication)

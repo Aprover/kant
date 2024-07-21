@@ -13,7 +13,7 @@ export const knowledgeIsDeclared = {
             .forEach(kr => {
                 if (getContainerOfType(kr, isPropertyDef) === undefined) {
                     if (!knowledgeClass.getGlobalKnowledgeDescriptorMap().get(kr.ref)) {
-                        accept("error", `Knowledge "${kr.ref} is not declared.`, { node: kr })
+                        accept("error", `Knowledge ${kr.ref} is not declared.`, { node: kr })
                     }
                 }
             })

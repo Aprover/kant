@@ -19,6 +19,8 @@ Alice know {
 Alice -> Bob : pub_key_a
 
 Bob know {
+    state state_b1;
+
     fresh priv_key_b: PrivateKey;    
     pub_key_b = PUB_GEN(priv_key_b);
 }
@@ -26,6 +28,10 @@ Bob know {
 Bob -> Alice : pub_key_b
 
 Alice know {
+    state state_a2; 
+
+    transition state_a1 => state_a2;
+
     fresh kab: SymmetricKey;
     enc_kab=PKE_ENC(kab) with pub_key_b;
 }
@@ -33,6 +39,10 @@ Alice know {
 Alice -> Bob: enc_kab
 
 Bob know {
+    state state_b2; 
+    
+    transition state_b1 => state_b2;
+
     dec_kab = PKE_DEC(enc_kab) with priv_key_b;
     fresh nb: Nonce;
     enc_nb = ENC(nb) with dec_kab;
@@ -41,6 +51,9 @@ Bob know {
 Bob -> Alice : enc_nb
 
 Alice know {
+   state state_a3; 
+
+    transition state_a2 => state_a3;
     dec_nb = DEC(enc_nb) with kab;
     sign_nb = SIGN(dec_nb) with priv_key_a;
     const cert_a: IdCertificate;
@@ -51,6 +64,10 @@ Alice know {
 Alice -> Bob : enc_cert_sign
 
 Bob know {
+    state state_b3; 
+
+    transition state_b2 => state_b3;
+
     dec_cert_sign = DEC(enc_cert_sign) with dec_kab;
     split_cert_sign = SPLIT(dec_cert_sign);
     verification = SIGN_VERIF(split_cert_sign[1]) with  pub_key_a;

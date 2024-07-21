@@ -4,7 +4,7 @@ entry Protocol:
     elements+=Element*;
 
 Element:
-    FunctionDef |  PropertyDef | SharedKnowledgeDef | Principals | PrincipalKnowledgeDef | Communication | Check | TypeDefinition ;
+    FunctionDef |  PropertyDef | SharedKnowledgeDef | Principals | PrincipalKnowledgeDef | Communication | Check | TypeDefinition | MetadataDefinition;
 
 TypeDefinition: 
     'type' (name+=Type | name+=Type (',' name+=Type)*)
@@ -13,6 +13,14 @@ TypeDefinition:
 Type:
     name=ID
 ;
+
+MetadataDefinition:
+    'metadata' (name+=Metadata | name+=Metadata (',' name+=Metadata)*)
+;
+
+Metadata:
+    name=ID
+; 
 
 UniversalIntroduction:
     ('forall' args+=ID (':' customType=[Type:ID]) (',' args+=ID (':' customType=[Type:ID]))* '|')
@@ -206,7 +214,7 @@ KnowledgeRef:
     // 2. check no one way functions is passed as argument in a function inversion def
 
 KnowledgeFromFunction:
-    invoked=[FunctionDef:ID] '(' (variadic?='...')?  args=KnowledgeFromFunctionArgsElements  ')'
+    invoked=[FunctionDef:ID] ('<' metadata+=[Metadata:ID] '>')? '(' (variadic?='...')?  args=KnowledgeFromFunctionArgsElements  ')'
 	('with' (keys+=KnowledgeValue | '{' keys+=KnowledgeValue (',' keys+=KnowledgeValue)* '}'))?
 ;
 

@@ -8,6 +8,8 @@
  */
 type Nonce, SymmetricKey, PrivateKey, PublicKey , Group, IdCertificate, BitString, Timestamp, Digest , Tag , Signature, Ciphertext, Number
 
+metadata aes_128_cbc, aes_256_cbc 
+
 function HASH(value:BitString) -> [ hash:Digest ] one way
 function HKDF(salt: Nonce, ikm: SymmetricKey, info: BitString) -> [ k1: SymmetricKey, k2: SymmetricKey, k3: SymmetricKey, k4: SymmetricKey, k5: SymmetricKey ] one way
 function PW_HASH(value: BitString) -> [ pw_hash: Digest ] one way

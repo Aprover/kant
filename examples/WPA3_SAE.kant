@@ -8,7 +8,7 @@ function SUM_MOD(r:Number,n:Number)->[t:Number]
 property forall r:Number, t:Number, p:Group | ELEMENT_OP(SCALAR_OP(SUM_MOD(r,t),p),INV_OP(SCALAR_OP(t,p))) -> SCALAR_OP(r,p)
 property forall x:Group, y:Group | ELEMENT_OP(x,y) equals ELEMENT_OP(y,x)
 property forall r:Number, t:Number | SUM_MOD(r,t) equals SUM_MOD(t,r)
-function HMAC(value:BitString) with k:BitString -> [ mac:HTag ]
+function HMAC(value:BitString) with k:BitString -> [ mac:HTag ] 
 function HMAC_VERIF(mac:HTag) with k:BitString -> [value:BitString]
 property forall v: BitString, k: BitString | HMAC_VERIF(HMAC(v) with k) with  k -> [ v ]
 
@@ -56,7 +56,7 @@ Alice know{
     state committed_A;
     transition nothig_A=>committed_A;
     fresh scA:Nonce;
-    //rec_commit_B=SPLIT(commit_B);
+    rec_commit_B=SPLIT(commit_B);
     pe_sb=SCALAR_OP(rec_commit_B[0],pe);
     pe_b=ELEMENT_OP(pe_sb,rec_commit_B[1]);
     pe_ba=SCALAR_OP(a,pe_b);
@@ -73,7 +73,7 @@ Bob know{
     state confirmed_B;
     transition committed_B=>confirmed_B;
     fresh scB:Nonce;
-    //rec_commit_A=SPLIT(commit_B);
+    rec_commit_A=SPLIT(commit_B);
     pe_sa=SCALAR_OP(rec_commit_A[0],pe);
     pe_a=ELEMENT_OP(pe_sa,rec_commit_A[1]);
     pe_ab=SCALAR_OP(b,pe_a);
@@ -89,6 +89,6 @@ Bob -> Alice: confirm_B
 Alice know{
     state confirmed_A;
     transition committed_A=>confirmed_A;
-    ok_b=HMAC_VERIF(confirm_B);
+    ok_b=HMAC_VERIF(confirm_B) with kck_a;
 }
 

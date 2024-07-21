@@ -29,7 +29,7 @@ Bob know{
     const b_cert:IdCertificate;
     a_na=SPLIT(m1);
     a_na_nb=CONCAT(a_na[0],a_na[1],nb);
-    enc_a_na_nb=ENC(a_na_nb) with kbs;
+    enc_a_na_nb=ENC <aes_128_cbc> (a_na_nb) with kbs;
     m2=CONCAT(b_cert,enc_a_na_nb);
 }
 
@@ -52,6 +52,7 @@ Server -> Alice: m3
 
 Alice know{
     state a2;
+    transition a1 => a2;
     split_m3=SPLIT(m3);
     dec_m3_0=DEC(split_m3[0]) with kas;
     split_b_kab_na_nb=SPLIT(dec_m3_0);
@@ -63,6 +64,7 @@ Alice->Bob: m4
 
 Bob know{
     state b2;
+    transition b1 => b2;
     split_m4=SPLIT(m4);
     dec_m4_0=DEC(split_m4[0]) with kbs;
     split_a_kab=SPLIT(dec_m4_0);

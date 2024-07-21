@@ -1,7 +1,7 @@
 import type { AstNode, AstNodeDescription, LangiumDocument, PrecomputedScopes } from "langium"
 import { DefaultScopeComputation, MultiMap, streamAllContents } from "langium"
 import { isType, Type } from "langium/lib/grammar/generated/ast"
-import { FunctionDef, isFunctionDef, isPrincipal, isState, Principal, State } from "./generated/ast"
+import { FunctionDef, isFunctionDef, isMetadata, isPrincipal, isState, Metadata, Principal, State } from "./generated/ast"
 
 export class KantScopeComputation extends DefaultScopeComputation {
     override computeExports(document: LangiumDocument): Promise<AstNodeDescription[]> {
@@ -14,10 +14,14 @@ export class KantScopeComputation extends DefaultScopeComputation {
                 .filter(isType)
                 .map(t => this.descriptions.createDescription(t, t.name, document))
                 .toArray()
+            let metadataDescriptions = streamAllContents(document.parseResult.value)
+                .filter(isMetadata)
+                .map(t => this.descriptions.createDescription(t, t.name, document))
+                .toArray()
             /* let inversionFunctionDescriptions = streamAllContents(document.parseResult.value)
                 .filter(isFunctionInversionDef)
                 .map(inversionDef => this.descriptions.createDescription(inversionDef, inversionDef.name, document)).toArray() */
-            return Promise.resolve(functionDescriptions.concat(typeDescriptions))
+            return Promise.resolve(functionDescriptions.concat(typeDescriptions).concat(metadataDescriptions))
         } else {
             return Promise.resolve([])
         }
@@ -28,7 +32,7 @@ export class KantScopeComputation extends DefaultScopeComputation {
         const scopes = new MultiMap<AstNode, AstNodeDescription>()
         // Here we navigate the full AST - local scopes shall be available in the whole document
         for (const node of streamAllContents(rootNode)) {
-            if (isFunctionDef(node) || isPrincipal(node) || isType(node) || isState(node)) {
+            if (isFunctionDef(node) || isPrincipal(node) || isType(node) || isState(node) || isMetadata(node)) {
                 const names = getLocalScopeNamesFrom(node)
                 names.forEach(name => scopes.add(rootNode, this.descriptions.createDescription(node, name, document)))
             }
@@ -52,7 +56,7 @@ export class KantScopeComputation extends DefaultScopeComputation {
     }
 }
 
-const getLocalScopeNamesFrom = (node: FunctionDef | Principal | Type | State): string[] => {
+const getLocalScopeNamesFrom = (node: FunctionDef | Principal | Type | State | Metadata): string[] => {
     switch (node.$type) {
         case `FunctionDef`:
             return [node.name]
@@ -61,6 +65,8 @@ const getLocalScopeNamesFrom = (node: FunctionDef | Principal | Type | State): s
         case "Type":
             return [node.name]
         case "State":
+            return [node.name]
+        case "Metadata":
             return [node.name]
     }
 }
