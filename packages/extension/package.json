@@ -1,6 +1,6 @@
 {
     "name": "kant-extension",
-    "version": "1.1.0",
+    "version": "1.1.1",
     "displayName": "kant",
     "description": "vscode extension for the kant security protocols specification language",
     "author": "Mario Lilli",
