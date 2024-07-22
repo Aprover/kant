@@ -5,6 +5,7 @@
     "description": "vscode extension for the kant security protocols specification language",
     "author": "Mario Lilli",
     "publisher": "Mario Lilli",
+    "icon": "logo-kant.png",
     "repository": {
         "type": "git",
         "url": "git+https://github.com/Aprover/kant.git"

@@ -23,16 +23,30 @@ export const knowledgeIsDeclaredForPrincipal = {
                         const communication = getContainerOfType(kr, isCommunication)
                         if (principalKnowledgeDef) {
                             principalKnowledgeDef.target.forEach(p => {
-                                /* accept('error', `p.ref.name: ${p.ref?.name}`, { node: kr })
-                            accept('error', `principals: ${principals.toString()}`, { node: kr })
-                            accept('error', `indexes: ${indexes?.toString()}`, { node: kr })  */
-                                let found = principals.contains(p.ref?.name!)
+                                // accept('error', `p.ref.name: ${p.ref?.name}`, { node: kr })
+                            //accept('error', `principals: ${knowledgeClass.printPrincipals()} doesn't know "${kr.ref}"`, { node: kr })
+                            //accept('error', `principals: ${knowledgeClass.printGlobalKnowledge()}`, { node: kr })
+                            //accept('error', `indexes: ${indexes?.toString()}`, { node: kr }) 
+                                
+                                    let found = principals.contains(p.ref?.name!)
 
-                                if (!found) {
-                                    accept("error", `Principal "${p.ref?.name}" doesn't know "${kr.ref}" here.`, {
-                                        node: kr
-                                    })
+                                    if (!found) {                      
+                                        if(p.ref?.name! === 'Intruder'){                                        
+                                            let found1 =knowledgeClass.containsKnowledge(kr.ref,'Intruder')
+        
+                                            if (!found1) {
+                                                accept("error", `Principal "${p.ref?.name}" doesn't know "${kr.ref}" here.`, {
+                                                    node: kr
+                                                })
+                                            }
+                                        }else{   
+                                            accept("error", `Principal "${p.ref?.name}" doesn't know "${kr.ref}" here.`, {
+                                            node: kr
+                                        })
+                                        }
                                 }
+                                
+                                
                             })
                         }
                         if (communication) {

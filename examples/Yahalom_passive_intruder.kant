@@ -1,0 +1,109 @@
+
+//A->B:A,na
+//B->S:B,{A,na,nb}kbs
+//S->A:{B,kab,na,nb}kas,{A,kab}kbs
+//A->B:{A,kab}kbs,{nb}kab
+
+principal Alice,Bob,Server,Intruder
+
+Alice, Server share{
+    const kas:SymmetricKey;
+}
+
+Bob, Server share{
+    const kbs:SymmetricKey;
+}
+
+Alice know{ 
+    state a1;
+    fresh na: Nonce;
+    const a_cert:IdCertificate;
+    m1=CONCAT(a_cert,na);
+}
+
+Alice -> Intruder: m1
+
+Intruder -> Bob: m1
+
+Bob know{
+    state b1;
+    fresh nb: Nonce;
+    const b_cert:IdCertificate;
+    a_na=SPLIT(m1);
+    a_na_nb=CONCAT(a_na[0],a_na[1],nb);
+    enc_a_na_nb=ENC <aes_128_cbc> (a_na_nb) with kbs;
+    m2=CONCAT(b_cert,enc_a_na_nb);
+}
+
+Intruder know{
+    state i1;
+    a_na_replay=SPLIT(m1);
+}
+
+Bob -> Intruder: m2
+
+Intruder-> Server: m2
+
+Server know{
+    state s1;
+    fresh kab: SymmetricKey;
+    split_m2=SPLIT(m2);
+    dec_a_na_nb=DEC(split_m2[1]) with kbs;
+    split_dec_a_na_nb=SPLIT(dec_a_na_nb);
+    m3_0=CONCAT(split_m2[0],kab,split_dec_a_na_nb[1],split_dec_a_na_nb[2]);
+    enc_m3_0=ENC(m3_0) with kas;
+    m3_1=CONCAT(split_dec_a_na_nb[0],kab);
+    enc_m3_1=ENC(m3_1) with kbs;
+    m3=CONCAT(enc_m3_0,enc_m3_1);
+}
+
+Intruder know{
+    state i2;
+    split_m2_replay=SPLIT(m2);
+    //dec_a_na_nb_replay=DEC(split_m2_replay[1]) with kbs;
+    //split_dec_a_na_nb_replay=SPLIT(dec_a_na_nb_replay)
+}
+
+Server -> Intruder: m3
+
+Intruder -> Alice: m3
+
+Alice know{
+    state a2;
+    transition a1 => a2;
+    split_m3=SPLIT(m3);
+    dec_m3_0=DEC(split_m3[0]) with kas;
+    split_b_kab_na_nb=SPLIT(dec_m3_0);
+    m4_1=ENC(split_b_kab_na_nb[3]) with split_b_kab_na_nb[1];
+    m4=CONCAT(split_m3[1],m4_1);
+} 
+
+Intruder know{
+    state i3;
+    split_m3_replay=SPLIT(m3);
+    //dec_m3_0_replay=DEC(split_m3_replay[0]) with kas;
+    //split_b_kab_na_nb_replay=SPLIT(dec_m3_0_replay)
+}
+
+
+Alice -> Intruder: m4
+
+Intruder -> Bob: m4
+
+Bob know{
+    state b2;
+    transition b1 => b2;
+    split_m4=SPLIT(m4);
+    dec_m4_0=DEC(split_m4[0]) with kbs;
+    split_a_kab=SPLIT(dec_m4_0);
+    dec_m4_1=DEC(split_m4[1]) with split_a_kab[1];
+}
+
+Intruder know{
+    state i4;
+    split_m4_replay=SPLIT(m4);
+    //dec_m4_0_replay=DEC(split_m4_replay[0]) with kbs;
+    //split_a_kab_replay=SPLIT(dec_m4_0_replay);
+    //dec_m4_1_replay=DEC(split_m4_replay[1]) with kab;
+}
+

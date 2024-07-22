@@ -517,60 +517,7 @@ export const knowledgeRetrieval = {
                                     //for (let i = 0; i < functionParam.length; i++) {
                                     let x = functionParam[0]
 
-                                    if (isKnowledgeRef(x)) {
-                                        paramName = x.ref
-
-                                        if (knowledgeClass.getGlobalKnowledgeDescriptorMap().get(x.ref) === undefined) {
-                                            accept("error", `The param "${x.ref}" is invoked before been defined.`, {
-                                                node: x
-                                            })
-                                        }
-                                        let firstIndex = knowledgeClass
-                                            .getGlobalKnowledgeDescriptorMap()
-                                            .get(x.ref)
-                                            ?.getFirstIndex()
-                                        let desiredType = knowledgeClass
-                                            .getGlobalKnowledgeDescriptorMap()
-                                            .get(knowledgeClass.getKnowledgebyIndex(firstIndex!, 0)!)
-                                            ?.getType()
-                                        knowledgeClass.addAliasGlobalKnowledge(
-                                            knowledgeName,
-                                            x.ref,
-                                            principalList,
-                                            desiredType!
-                                        )
-                                        ArrayParam.push(paramName)
-                                    }
-                                    if (isListAccess(x)) {
-                                        paramName = x.ref.concat("[" + x.index + "]")
-
-                                        if (
-                                            knowledgeClass.getGlobalKnowledgeDescriptorMap().get(paramName) ===
-                                            undefined
-                                        ) {
-                                            accept(
-                                                "error",
-                                                `The param "${paramName}" is invoked before been defined.`,
-                                                { node: x }
-                                            )
-                                        }
-                                        let firstIndex = knowledgeClass
-                                            .getGlobalKnowledgeDescriptorMap()
-                                            .get(paramName)
-                                            ?.getFirstIndex()
-                                        let desiredType = knowledgeClass
-                                            .getGlobalKnowledgeDescriptorMap()
-                                            .get(knowledgeClass.getKnowledgebyIndex(firstIndex!, 0)!)
-                                            ?.getType()
-
-                                        knowledgeClass.addAliasGlobalKnowledge(
-                                            knowledgeName,
-                                            paramName,
-                                            principalList,
-                                            desiredType!
-                                        )
-                                        ArrayParam.push(paramName)
-                                    }
+                                    let wrongkey=true
                                     for (let j = 0; j < functionSecondaryParam.length; j++) {
                                         let keyParam = functionSecondaryParam[j]
                                         if (isKnowledgeRef(keyParam)) {
@@ -585,9 +532,13 @@ export const knowledgeRetrieval = {
                                                     `The param "${keyParam.ref}" is invoked before been defined.`,
                                                     { node: keyParam }
                                                 )
+                                                wrongkey=false
+                                            }else{
+                                                
+                                                ArrayKeys.push(keyParam.ref!)
                                             }
 
-                                            ArrayKeys.push(keyParam.ref!)
+                                            //ArrayKeys.push(keyParam.ref!)
                                             //knowledgeClass.setParmKeyPairing(ArrayParam,ArrayKeys)
                                         }
                                         if (isListAccess(keyParam)) {
@@ -602,13 +553,74 @@ export const knowledgeRetrieval = {
                                                     `The param "${final}" is invoked before been defined.`,
                                                     { node: keyParam }
                                                 )
+                                                wrongkey=false
+                                            }else{
+                                                ArrayKeys.push(final)
                                             }
 
-                                            ArrayKeys.push(final)
+                                            //ArrayKeys.push(final)
                                             //knowledgeClass.setParmKeyPairing(ArrayParam,ArrayKeys)
                                         }
                                     }
-                                    knowledgeClass.setParmKeyPairing(ArrayParam, ArrayKeys)
+                                    if(wrongkey){
+                                        if (isKnowledgeRef(x)) {
+                                            paramName = x.ref
+
+                                            if (knowledgeClass.getGlobalKnowledgeDescriptorMap().get(x.ref) === undefined) {
+                                                accept("error", `The param "${x.ref}" is invoked before been defined.`, {
+                                                    node: x
+                                                })
+                                            }
+                                            let firstIndex = knowledgeClass
+                                                .getGlobalKnowledgeDescriptorMap()
+                                                .get(x.ref)
+                                                ?.getFirstIndex()
+                                            let desiredType = knowledgeClass
+                                                .getGlobalKnowledgeDescriptorMap()
+                                                .get(knowledgeClass.getKnowledgebyIndex(firstIndex!, 0)!)
+                                                ?.getType()
+                                            knowledgeClass.addAliasGlobalKnowledge(
+                                                knowledgeName,
+                                                x.ref,
+                                                principalList,
+                                                desiredType!
+                                            )
+                                            ArrayParam.push(paramName)
+                                        }
+                                        
+                                        if (isListAccess(x)) {
+                                            paramName = x.ref.concat("[" + x.index + "]")
+
+                                            if (
+                                                knowledgeClass.getGlobalKnowledgeDescriptorMap().get(paramName) ===
+                                                undefined
+                                            ) {
+                                                accept(
+                                                    "error",
+                                                    `The param "${paramName}" is invoked before been defined.`,
+                                                    { node: x }
+                                                )
+                                            }
+                                            let firstIndex = knowledgeClass
+                                                .getGlobalKnowledgeDescriptorMap()
+                                                .get(paramName)
+                                                ?.getFirstIndex()
+                                            let desiredType = knowledgeClass
+                                                .getGlobalKnowledgeDescriptorMap()
+                                                .get(knowledgeClass.getKnowledgebyIndex(firstIndex!, 0)!)
+                                                ?.getType()
+
+                                            knowledgeClass.addAliasGlobalKnowledge(
+                                                knowledgeName,
+                                                paramName,
+                                                principalList,
+                                                desiredType!
+                                            )
+                                            ArrayParam.push(paramName)
+                                        }
+                                        knowledgeClass.setParmKeyPairing(ArrayParam, ArrayKeys)
+                                    }
+                                    
                                 }
                             }
                         }

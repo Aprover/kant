@@ -60,6 +60,28 @@ export class KnowledgeClass {
         return this._globalKnowledge[first]?.get(second)
     }
 
+    public getAliasList(name: string) {
+        return this._globalKnowledge[this.getKeyPairing(name)![0]!]
+    }
+
+    public containsKnowledge(knowledge: string, principal : string){
+        let principalAliasList=this._principalAssociationKnowledge[this._globalKnowledgeDescriptorMap.get(knowledge)?.getFirstIndex()!]
+        let found=false
+        for(let i = 0; i < principalAliasList!.length; i++){
+            if(principalAliasList![i]?.contains(principal)){
+                found=true
+            }
+
+        }
+        return found
+    }
+
+    public containsKnowledgeDebug(knowledge: string){
+        //let principalAliasList=this._principalAssociationKnowledge[this.getKeyPairing(knowledge)![0]!]
+        
+        return this._globalKnowledgeDescriptorMap.get(knowledge)?.getFirstIndex()
+    }
+
     /**
      *
      * @param name: knowledge name
